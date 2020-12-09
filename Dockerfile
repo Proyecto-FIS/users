@@ -1,6 +1,6 @@
 FROM node:9-alpine
 
-WORKDIR /app
+WORKDIR /coffaine-users
 
 COPY package.json .
 COPY package-lock.json .
@@ -8,6 +8,7 @@ COPY package-lock.json .
 RUN npm install
 
 COPY index.js .
+COPY routes/ routes
 
 EXPOSE 3000
 
