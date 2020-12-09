@@ -11,6 +11,17 @@ router.post("/login", (req, res) => {
 // TODO
 });
 
+/**
+ * @route GET /auth/{token}
+ * @group authentication - login/logout
+ * @param {string} token.query.required - JWT token
+ * @returns {object} 201 - Authenticated user, giving user id
+ * @returns {Error}  401 - Error while checking token
+ */
+router.get("/:token", (req, res) => {
+    // TODO
+    });
+
 
 /**
  * @route GET /auth/logout
