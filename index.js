@@ -5,7 +5,7 @@ const toasters = require('./routes/toasters');
 const customers = require('./routes/customers');
 const auth = require('./routes/auth');
 
-var port = 3000;
+var port = process.env.PORT || 3000;
 var BASE_API_PATH = "/api/v1";
 
 
