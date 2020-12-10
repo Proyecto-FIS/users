@@ -11,6 +11,12 @@ var db = new dataStore({
     autoload: true
 });
 
+/////////////// Swagger Model Definition /////////////////
+/**
+ * @typedef Customer
+ * @property {string} pictureUrl
+ * @property {string} address
+ */
 
 /////////////// Routes /////////////////
 /**

@@ -11,11 +11,22 @@ var db = new dataStore({
     autoload: true
 });
 
+/////////////// Swagger Model Definition /////////////////
+/**
+ * @typedef Toaster
+ * @property {string} name.required
+ * @property {string} description.required
+ * @property {string} address
+ * @property {string} phoneNumber
+ * @property {string} pictureUrl
+ * @property {Array.<String>} socialNetworks 
+ */
+
 
 /////////////// Routes /////////////////
 /**
  * @route GET /toasters
- * @group Toasters - Toasters operations
+ * @group toasters - Toasters operations
  * @returns {object} 200 - A complete list of toasters
  * @returns {Error}  500 - Unexpected error
  */
@@ -35,7 +46,7 @@ router.get("/", (req, res) => {
 
 /**
  * @route POST /toasters
- * @group Toasters - Toasters operations
+ * @group toasters - Toasters operations
  * @returns {object} 201 - Toaster created
  * @returns {Error}  501 - Unexpected error creating a toaster
  */
@@ -56,7 +67,7 @@ router.post("/", (req, res) => {
 
 /**
  * @route GET /toasters/{id}
- * @group Toasters - Toasters operations
+ * @group toasters - Toasters operations
  * @param {string} id.query.required - toaster id required
  * @returns {object} 200 - The toaster with given id
  * @returns {Error}  500 - Unexpected error
@@ -68,7 +79,7 @@ router.get("/:id", (req, res) => {
 
 /**
  * @route PUT /toasters/{id}
- * @group Toasters - Toasters operations
+ * @group toasters - Toasters operations
  * @param {string} id.query.required - toaster id required
  * @returns {object} 200 - Updated toaster
  * @returns {Error}  404 - Unexpected error
@@ -80,7 +91,7 @@ router.put("/:id", (req, res) => {
 
 /**
  * @route DELETE /toasters/{id}
- * @group Toasters - Toasters operations
+ * @group toasters - Toasters operations
  * @param {string} id.query.required - toaster id required
  * @returns {object} 200 - Deleted toaster
  * @returns {Error}  404 - Unexpected error
@@ -88,6 +99,7 @@ router.put("/:id", (req, res) => {
 router.delete("/:id", (req, res) => {
     // TODO
 });
+
 
 
 module.exports = router; 
