@@ -1,6 +1,9 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 
+const app = require('./server.js');
+const dbConnect = require('./db.js');
+
 const toasters = require('./routes/toasters');
 const customers = require('./routes/customers');
 const auth = require('./routes/auth');
@@ -8,13 +11,29 @@ const auth = require('./routes/auth');
 var port = process.env.PORT || 3000;
 var BASE_API_PATH = "/api/v1";
 
+dbConnect().then(
+    () => {
+        app.listen(port);
+        console.log("Server ready!")
+    },
+    err => {
+        console.log("Connection error: "+err);
+    }
+)
 
-console.log("Starting API server...");
+//Routes
+app.get("/", (req, res) => {
+    res.send("<html><body><h1> User management index page. </h1></body> </html>");
+});
 
-var app = express();
-app.use(bodyParser.json());
+app.use(BASE_API_PATH + '/customers', customers);
+app.use(BASE_API_PATH + '/toasters', toasters);
+app.use(BASE_API_PATH + '/auth', auth);
 
-//Swagger documentation
+
+
+
+// Swagger documentation //
 const expressSwagger = require('express-swagger-generator')(app);
 
 let options = {
@@ -45,15 +64,3 @@ let options = {
 };
 
 expressSwagger(options);
-
-
-//Routes
-app.get("/", (req, res) => {
-    res.send("<html><body><h1> User management index page. </h1></body> </html>");
-});
-
-app.use(BASE_API_PATH + '/customers', customers);
-app.use(BASE_API_PATH + '/toasters', toasters);
-app.use(BASE_API_PATH + '/auth', auth);
-
-app.listen(port);

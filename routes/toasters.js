@@ -1,15 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-var dataStore = require('nedb');
-
-var DB_FILE_NAME = __dirname + "/../toasters.json";
-
-//Inicialización de DB
-var db = new dataStore({
-    filename: DB_FILE_NAME,
-    autoload: true
-});
+const Toaster = require('../models/toasters.js');
 
 /////////////// Swagger Model Definition /////////////////
 /**
@@ -31,15 +23,12 @@ var db = new dataStore({
  * @returns {Error}  500 - Unexpected error
  */
 router.get("/", (req, res) => {
-    db.find({}, (err, toasters) => {
+    Toaster.find({}, (err, toasters) => {
         if(err){
             console.log(Date() + "-" + err);
             res.sendStatus(500);
         } else {
-            res.send(toasters.map((toaster) => {
-                delete toaster._id;
-                return toaster;
-            }));
+            res.send(toasters);
         }
     });
 });
@@ -53,7 +42,7 @@ router.get("/", (req, res) => {
 router.post("/", (req, res) => {
     var toaster = req.body;
 
-    db.insert(toaster, (err) => {
+    Toaster.create(toaster, (err) => {
         if (err){
             toaster.log(Date() + "-" + err);
             res.sendStatus(501);
