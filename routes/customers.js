@@ -1,15 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-var dataStore = require('nedb');
-
-var DB_FILE_NAME = __dirname + "/../customers.json";
-
-//Inicialización de DB
-var db = new dataStore({
-    filename: DB_FILE_NAME,
-    autoload: true
-});
+const Customer = require('../models/customers.js');
+const Account = require('../models/accounts.js');
 
 /////////////// Swagger Model Definition /////////////////
 /**
@@ -26,15 +19,12 @@ var db = new dataStore({
  * @returns {Error}  500 - Unexpected error
  */
 router.get("/", (req, res) => {
-    db.find({}, (err, customers) => {
+    Customer.find({}, (err, customers) => {
         if(err){
             console.log(Date() + "-" + err);
             res.sendStatus(500);
         } else {
-            res.send(customers.map((customer) => {
-                delete customer._id;
-                return customer;
-            }));
+            res.send(customers);
         }
     });
 });
@@ -48,7 +38,7 @@ router.get("/", (req, res) => {
 router.post("/", (req, res) => {
     var customer = req.body;
 
-    db.insert(customer, (err) => {
+    Customer.insert(customer, (err) => {
         if (err){
             customer.log(Date() + "-" + err);
             res.sendStatus(501);

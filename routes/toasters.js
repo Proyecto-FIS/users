@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Toaster = require('../models/toasters.js');
+const Account = require('../models/accounts.js');
 
 /////////////// Swagger Model Definition /////////////////
 /**
