@@ -21,6 +21,9 @@ const toasterSchema = new mongoose.Schema({
     },
     socialNetworks: {
         type: [String]
+    },
+    account: {
+        type: mongoose.Schema.Types.ObjectId, ref: "Account"
     }},
     {
         timestamps: true

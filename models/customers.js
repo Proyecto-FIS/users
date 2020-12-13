@@ -6,6 +6,9 @@ const customerSchema = new mongoose.Schema({
     },
     address: {
         type: String
+    },
+    account: {
+        type: mongoose.Schema.Types.ObjectId, ref: "Account"
     }},
     {
         timestamps: true
