@@ -1,8 +1,7 @@
-const express = require('express');
-const router = express.Router();
+const { Router } = require('express')
+const router = Router()
 
-const Toaster = require('../models/toasters.js');
-const Account = require('../models/accounts.js');
+const { getToaster, getToasters, createToaster, updateToaster, deleteToaster } = require('../controllers/toaster_controller')
 
 /////////////// Swagger Model Definition /////////////////
 /**
@@ -23,36 +22,15 @@ const Account = require('../models/accounts.js');
  * @returns {object} 200 - A complete list of toasters
  * @returns {Error}  500 - Unexpected error
  */
-router.get("/", (req, res) => {
-    Toaster.find({}, (err, toasters) => {
-        if(err){
-            console.log(Date() + "-" + err);
-            res.sendStatus(500);
-        } else {
-            res.send(toasters);
-        }
-    });
-});
+router.route('/').get(getToasters)
 
 /**
  * @route POST /toasters
  * @group toasters - Toasters operations
  * @returns {object} 201 - Toaster created
- * @returns {Error}  501 - Unexpected error creating a toaster
+ * @returns {Error}  500 - Unexpected error creating a toaster
  */
-router.post("/", (req, res) => {
-    var toaster = req.body;
-
-    Toaster.create(toaster, (err) => {
-        if (err){
-            toaster.log(Date() + "-" + err);
-            res.sendStatus(501);
-        } else {
-            res.sendStatus(201);
-        }
-    });
-
-});
+router.route('/').post(createToaster)
 
 
 /**
@@ -62,10 +40,7 @@ router.post("/", (req, res) => {
  * @returns {object} 200 - The toaster with given id
  * @returns {Error}  500 - Unexpected error
  */
-router.get("/:id", (req, res) => {
-    // TODO
-});
-
+router.route('/:id').get(getToaster)
 
 /**
  * @route PUT /toasters/{id}
@@ -74,10 +49,7 @@ router.get("/:id", (req, res) => {
  * @returns {object} 200 - Updated toaster
  * @returns {Error}  404 - Unexpected error
  */
-router.put("/:id", (req, res) => {
-    // TODO
-});
-
+router.route('/:id').put(updateToaster)
 
 /**
  * @route DELETE /toasters/{id}
@@ -86,10 +58,6 @@ router.put("/:id", (req, res) => {
  * @returns {object} 200 - Deleted toaster
  * @returns {Error}  404 - Unexpected error
  */
-router.delete("/:id", (req, res) => {
-    // TODO
-});
-
-
+router.route('/:id').delete(deleteToaster)
 
 module.exports = router; 
