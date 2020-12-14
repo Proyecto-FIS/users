@@ -10,7 +10,7 @@ RUN npm install
 COPY index.js .
 COPY routes/ routes
 COPY models/ models
-COPY controller/ controller
+COPY controllers/ controllers
 
 EXPOSE 3000
 
