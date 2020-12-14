@@ -7,7 +7,6 @@ COPY package-lock.json .
 
 RUN npm install
 
-COPY index.js .
 COPY routes/ routes
 
 EXPOSE 3000
