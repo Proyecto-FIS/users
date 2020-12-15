@@ -1,11 +1,13 @@
 const customerCtrl = {};
 const jwt = require('jsonwebtoken');
+process.env.SUPPRESS_NO_CONFIG_WARNING = 'y';
+const cfg = require('config');
 const Customer = require('../models/customers');
 const Account = require('../models/accounts');
 
 customerCtrl.getCustomers = async (req, res) => {
     try { 
-        const customers =  await Customer.find()
+        const customers =  await Customer.find();
         Account.populate(customers, {path: "account"},function(err, customers){
             res.status(200).json(customers);
         });
@@ -41,8 +43,8 @@ customerCtrl.createCustomer = async (req, res) => {
                     id: account.id
                     }
                 };
-
-            jwt.sign(payload, "secretToken", {expiresIn:3600}, (err, token) => {
+            //TODO cambiar el expires a 3600 en producción
+            jwt.sign(payload, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
                 if(err) {
                     throw err;
                 } else {
