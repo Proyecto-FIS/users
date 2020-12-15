@@ -1,5 +1,6 @@
 const toasterCtrl = {}
-
+const jwt = require('jsonwebtoken');
+const cfg = require('config');
 const Toaster = require('../models/toasters')
 const Account = require('../models/accounts')
 
@@ -28,24 +29,37 @@ toasterCtrl.getToaster = async (req, res) => {
 }
 
 toasterCtrl.createToaster = async (req, res) => {
-    const { username, password, email, name, description, phoneNumber, pictureUrl, address, socialNetworks } = req.body
-    const newAccount = new Account({ username, password, email })
+    const { username, password, email, name, description, phoneNumber, pictureUrl, address, socialNetworks } = req.body;
+    const newAccount = new Account({ username, password, email });
     try { 
-        const account = await newAccount.save()
-        const newToaster = new Toaster({ name, description, phoneNumber, pictureUrl, address, socialNetworks, account })
+        const account = await newAccount.save();
+        const newToaster = new Toaster({ name, description, phoneNumber, pictureUrl, address, socialNetworks, account });
         try {
-            await newToaster.save()
-            res.json({message: "Toaster created"})
+            await newToaster.save();
+
+            const payload = {
+                account: {
+                    id: account.id
+                    }
+                };
+            //TODO cambiar el expires a 3600 en producción
+            jwt.sign(payload, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
+                if(err) {
+                    throw err;
+                } else {
+                    res.json({token});
+                }
+            });
         } catch (err) {
             // TODO: quitar esto e implementar rollback
-            await Account.deleteOne( {"_id": account})
-            console.log(Date() + "-" + err)
-            res.sendStatus(500)    
+            await Account.deleteOne( {"_id": account});
+            console.log(Date() + "-" + err);
+            res.sendStatus(500);
         }
     }
     catch (err) {
-        console.log(Date() + "-" + err)
-        res.sendStatus(500)
+        console.log(Date() + "-" + err);
+        res.sendStatus(500);
     }
 }
 
