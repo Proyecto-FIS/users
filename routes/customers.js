@@ -1,15 +1,7 @@
-const express = require('express');
-const router = express.Router();
+const { Router } = require('express')
+const router = Router()
 
-var dataStore = require('nedb');
-
-var DB_FILE_NAME = __dirname + "/../customers.json";
-
-//Inicialización de DB
-var db = new dataStore({
-    filename: DB_FILE_NAME,
-    autoload: true
-});
+const { getCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer } = require('../controllers/customer_controller')
 
 /////////////// Swagger Model Definition /////////////////
 /**
@@ -25,39 +17,15 @@ var db = new dataStore({
  * @returns {object} 200 - A complete list of customers
  * @returns {Error}  500 - Unexpected error
  */
-router.get("/", (req, res) => {
-    db.find({}, (err, customers) => {
-        if(err){
-            console.log(Date() + "-" + err);
-            res.sendStatus(500);
-        } else {
-            res.send(customers.map((customer) => {
-                delete customer._id;
-                return customer;
-            }));
-        }
-    });
-});
+router.route('/').get(getCustomers)
 
 /**
  * @route POST /customers
  * @group customers - customers operations
  * @returns {object} 201 - customer created
- * @returns {Error}  501 - Unexpected error creating a customer
+ * @returns {Error}  500 - Unexpected error creating a customer
  */
-router.post("/", (req, res) => {
-    var customer = req.body;
-
-    db.insert(customer, (err) => {
-        if (err){
-            customer.log(Date() + "-" + err);
-            res.sendStatus(501);
-        } else {
-            res.sendStatus(201);
-        }
-    });
-
-});
+router.route('/').post(createCustomer)
 
 
 /**
@@ -67,21 +35,16 @@ router.post("/", (req, res) => {
  * @returns {object} 200 - The customer with given id
  * @returns {Error}  500 - Unexpected error
  */
-router.get("/:id", (req, res) => {
-    // TODO
-});
-
+router.route('/:id').get(getCustomer)
 
 /**
  * @route PUT /customers/{id}
  * @group customers - customers operations
  * @param {string} id.query.required - customer id required
  * @returns {object} 200 - Updated customer
- * @returns {Error}  404 - Unexpected error
+ * @returns {Error}  500 - Unexpected error
  */
-router.put("/:id", (req, res) => {
-    // TODO
-});
+router.route('/:id').put(updateCustomer)
 
 
 /**
@@ -91,9 +54,7 @@ router.put("/:id", (req, res) => {
  * @returns {object} 200 - Deleted customer
  * @returns {Error}  404 - Unexpected error
  */
-router.delete("/:id", (req, res) => {
-    // TODO
-});
+router.route('/:id').delete(deleteCustomer)
 
 
-module.exports = router; 
+module.exports = router 

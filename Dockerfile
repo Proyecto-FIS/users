@@ -8,7 +8,12 @@ COPY package-lock.json .
 RUN npm install
 
 COPY index.js .
+COPY server.js .
+COPY db.js .
+
 COPY routes/ routes
+COPY models/ models
+COPY controllers/ controllers
 
 EXPOSE 3000
 
