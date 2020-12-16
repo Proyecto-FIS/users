@@ -23,7 +23,7 @@ const router = express.Router();
  * @returns {Error}  401 - Error while logging user
  */
 router.post("/login", async (req, res) => {
-// TODO
+
     const { username, password } = req.body;
     try { 
         const account = await Account.findOne({username});
@@ -65,21 +65,32 @@ router.post("/login", async (req, res) => {
  * @returns {object} 201 - Authenticated user, giving user id
  * @returns {Error}  401 - Error while checking token
  */
-router.get("/:token", (req, res) => {
-    // TODO
- 
+router.get("/:token", async (req, res) => {
+
+    const token = req.params.token;
+
+    if(!token){
+        return res.status(401);
+    }
+    //Verificación del token
+    try {
+        const decoded = jwt.verify(token, cfg.get("jwttoken"));
+        //Añadimos a la cabecera el usuario identificado
+        var account = decoded.account;
+    } catch(err) {
+        res.status(401);
+    }
+
+    try {
+        acc = await Account.findById(account.id);
+        res.status(201);
+        res.json({"account_id": account.id});
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).json({ error:"Invalid token"});
+    }
 
     });
 
-
-/**
- * @route GET /auth/logout
- * @group authentication - login/logout
- * @returns {object} 201 - Loggout user
- * @returns {Error}  500 - Unexpected error
- */
-router.get("/logout", (req, res) => {
-    //TODO
-});
 
 module.exports = router; 
