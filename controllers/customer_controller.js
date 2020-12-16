@@ -1,17 +1,19 @@
-const customerCtrl = {}
-
-const Customer = require('../models/customers')
-const Account = require('../models/accounts')
+const customerCtrl = {};
+const jwt = require('jsonwebtoken');
+process.env.SUPPRESS_NO_CONFIG_WARNING = 'y';
+const cfg = require('config');
+const Customer = require('../models/customers');
+const Account = require('../models/accounts');
 
 customerCtrl.getCustomers = async (req, res) => {
-    try{ 
-        const customers =  await Customer.find()
+    try { 
+        const customers =  await Customer.find();
         Account.populate(customers, {path: "account"},function(err, customers){
             res.status(200).json(customers);
-        }) 
+        });
     } catch (err) {
-        console.log(Date() + "-" + err)
-        res.sendStatus(500)
+        console.log(Date() + "-" + err);
+        res.sendStatus(500);
     }
 }
 
@@ -20,22 +22,36 @@ customerCtrl.getCustomer = async (req, res) => {
         const customer =  await Customer.findById(req.params.id)
         Account.populate(customer, {path: "account"},function(err, customer){
             res.status(200).json(customer);
-        }) 
+        });
     } catch (err) {
-        console.log(Date() + "-" + err)
-        res.sendStatus(404)
+        console.log(Date() + "-" + err);
+        res.sendStatus(404);
     }
 }
 
 customerCtrl.createCustomer = async (req, res) => {
-    const { username, password, email, pictureUrl, address } = req.body
-    const newAccount = new Account({ username, password, email })
+    const { username, password, email, pictureUrl, address } = req.body;
+    const newAccount = new Account({ username, password, email });
     try { 
-        const account = await newAccount.save()
-        const newCustomer = new Customer({ pictureUrl, address, account })
+        const account = await newAccount.save();
+        const newCustomer = new Customer({ pictureUrl, address, account });
         try {
-            await newCustomer.save()
-            res.json({message: "Customer created"})
+            await newCustomer.save();
+
+            const payload = {
+                account: {
+                    id: account.id
+                    }
+                };
+            //TODO cambiar el expires a 3600 en producción
+            jwt.sign(payload, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
+                if(err) {
+                    throw err;
+                } else {
+                    res.json({token});
+                }
+            });
+
         } catch (err) {
             // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account})
@@ -44,8 +60,8 @@ customerCtrl.createCustomer = async (req, res) => {
         }
     }
     catch (err) {
-        console.log(Date() + "-" + err)
-        res.sendStatus(500)
+        console.log(Date() + "-" + err);
+        res.sendStatus(500);
     }
 }
 
