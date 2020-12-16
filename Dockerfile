@@ -13,6 +13,8 @@ COPY db.js .
 
 COPY routes/ routes
 COPY models/ models
+COPY middleware/ middleware
+COPY config/ config
 COPY controllers/ controllers
 
 EXPOSE 3000
