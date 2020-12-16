@@ -84,7 +84,7 @@ router.get("/:token", async (req, res) => {
     try {
         acc = await Account.findById(account.id);
         res.status(201);
-        res.json({"account_id": account.id});
+        res.json({"account_id": acc.id});
     } catch(err) {
         console.error(err.message);
         res.status(500).json({ error:"Invalid token"});
