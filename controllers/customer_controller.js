@@ -31,7 +31,8 @@ customerCtrl.getCustomer = async (req, res) => {
 
 customerCtrl.createCustomer = async (req, res) => {
     const { username, password, email, pictureUrl, address } = req.body;
-    const newAccount = new Account({ username, password, email });
+    const isCustomer = true;
+    const newAccount = new Account({ username, password, email, isCustomer });
     try { 
         const account = await newAccount.save();
         const newCustomer = new Customer({ pictureUrl, address, account });
@@ -40,7 +41,8 @@ customerCtrl.createCustomer = async (req, res) => {
 
             const payload = {
                 account: {
-                    id: account.id
+                    id: account.id,
+                    isCustomer: account.isCustomer
                     }
                 };
             //TODO cambiar el expires a 3600 en producción

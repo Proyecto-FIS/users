@@ -8,10 +8,11 @@ const router = express.Router();
 /////////////// Swagger Model Definition /////////////////
 /**
  * Toasters y Customers heredarían las propiedades de este tipo.
- * @typedef UserAccount
+ * @typedef Account
  * @property {string} userName.required
  * @property {string} password.required
  * @property {string} email.required
+ * @property {boolean} isCustomer.required - Autogenerado
  * @property {Date} updated - Última fecha en que se actualizó el perfil
  */
 
@@ -40,7 +41,8 @@ router.post("/login", async (req, res) => {
 
         const payload = {
             account: {
-                id: account.id
+                id: account.id,
+                isCustomer: account.isCustomer
                 }
             };
         //TODO cambiar el expires a 3600 en producción
@@ -84,7 +86,7 @@ router.get("/:token", async (req, res) => {
     try {
         acc = await Account.findById(account.id);
         res.status(201);
-        res.json({"account_id": acc.id});
+        res.json({"account_id": acc.id, "isCustomer":acc.isCustomer});
     } catch(err) {
         console.error(err.message);
         res.status(500).json({ error:"Invalid token"});

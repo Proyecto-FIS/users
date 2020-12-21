@@ -30,7 +30,8 @@ toasterCtrl.getToaster = async (req, res) => {
 
 toasterCtrl.createToaster = async (req, res) => {
     const { username, password, email, name, description, phoneNumber, pictureUrl, address, socialNetworks } = req.body;
-    const newAccount = new Account({ username, password, email });
+    const isCustomer = false;
+    const newAccount = new Account({ username, password, email, isCustomer });
     try { 
         const account = await newAccount.save();
         const newToaster = new Toaster({ name, description, phoneNumber, pictureUrl, address, socialNetworks, account });
@@ -39,7 +40,8 @@ toasterCtrl.createToaster = async (req, res) => {
 
             const payload = {
                 account: {
-                    id: account.id
+                    id: account.id,
+                    isCustomer: account.isCustomer
                     }
                 };
             //TODO cambiar el expires a 3600 en producción

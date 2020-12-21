@@ -15,6 +15,10 @@ const accountSchema = new mongoose.Schema({
         type: String,
         required: "email is required",
         unique: true
+    },
+    isCustomer: {
+        type: Boolean,
+        required: true
     }},
     {
         timestamps: true
