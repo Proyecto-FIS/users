@@ -69,7 +69,7 @@ router.post("/login", async (req, res) => {
 
 router.get('/', auth, async (req, res) => {
     try {
-      const account = await Account.findById(req.acc.id).select('-password');
+      const account = await Account.findById(req.account.id).select('-password');
       res.json(account);
     } catch (err) {
       console.error(err.message);
