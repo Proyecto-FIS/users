@@ -3,6 +3,7 @@ const Account = require('../models/accounts');
 const jwt = require('jsonwebtoken');
 const cfg = require('config');
 const Bcrypt = require("bcryptjs");
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 /////////////// Swagger Model Definition /////////////////
@@ -59,6 +60,23 @@ router.post("/login", async (req, res) => {
         res.status(500);
     }
 });
+
+/**
+ * @route GET /auth
+ * @group authentication - login/logout
+ * @returns {object} 201 - Get account by stored token (used for frontend)
+ */
+
+router.get('/', auth, async (req, res) => {
+    try {
+      const account = await Account.findById(req.acc.id).select('-password');
+      res.json(account);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  });
+
 
 /**
  * @route GET /auth/{token}
