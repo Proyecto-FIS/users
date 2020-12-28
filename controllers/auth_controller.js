@@ -1,0 +1,103 @@
+const express = require('express');
+const Account = require('../models/accounts');
+const jwt = require('jsonwebtoken');
+const cfg = require('config');
+const Bcrypt = require("bcryptjs");
+
+const authCtrl = {};
+
+/**
+ * @route POST /auth/login
+ * @group authentication - login/logout
+ * @returns {object} 201 - Logged user
+ * @returns {Error}  401 - Error while logging user
+ */
+authCtrl.login = async (req, res) => {
+
+    const { username, password } = req.body;
+    try { 
+        const account = await Account.findOne({username});
+
+        if(!account){
+            return res.status(400).json( { errors:[{msg:"Invalid login"}] });
+        }
+
+        const isMatched = await Bcrypt.compare(password, account.password);
+
+        if(!isMatched){
+            return res.status(400).json( { errors:[{msg:"Invalid login"}] });
+        }
+
+        //TODO cambiar el expires a 3600 en producción
+        jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
+            if(err) {
+                throw err;
+            } else {
+                res.json({
+                    _id: account.id,
+                    username: account.username,
+                    email: account.email,
+                    isCustomer: account.isCustomer,
+                    token: token});
+            }
+        });
+
+    } catch(err){
+        console.log(err.message);
+        res.status(500);
+    }
+};
+
+/**
+ * @route GET /auth
+ * @group authentication - login/logout
+ * @returns {object} 201 - Get account by stored token (used for frontend)
+ */
+
+authCtrl.getAuth = async (req, res) => {
+    try {
+      const account = await Account.findById(req.accountId).select('-password');
+      res.json(account);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  };
+
+
+/**
+ * @route GET /auth/{token}
+ * @group authentication - login/logout
+ * @param {string} token.query.required - JWT token
+ * @returns {object} 201 - Authenticated user, giving user id
+ * @returns {Error}  401 - Error while checking token
+ */
+authCtrl.getAccountByToken = async (req, res) => {
+
+    const token = req.params.token;
+
+    if(!token){
+        return res.status(401);
+    }
+    //Verificación del token
+    try {
+        const decoded = jwt.verify(token, cfg.get("jwttoken"));
+        //Añadimos a la cabecera el usuario identificado
+        var accountId = decoded.id;
+    } catch(err) {
+        res.status(401);
+    }
+
+    try {
+        acc = await Account.findById(accountId);
+        res.status(201);
+        res.json({"account_id": acc.id, "username":acc.username, "isCustomer":acc.isCustomer});
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).json({ error:"Invalid token"});
+    }
+
+    };
+
+
+module.exports = authCtrl; 
