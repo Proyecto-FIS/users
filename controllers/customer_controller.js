@@ -34,23 +34,28 @@ customerCtrl.createCustomer = async (req, res) => {
     const isCustomer = true;
     const newAccount = new Account({ username, password, email, isCustomer });
     try { 
+        accountExists = await Account.findOne({username});
+        
+        if(accountExists){
+            return res.status(400).json( { errors:[{msg:"Account already exists"}] });
+        }
+
         const account = await newAccount.save();
         const newCustomer = new Customer({ pictureUrl, address, account });
         try {
             await newCustomer.save();
 
-            const payload = {
-                account: {
-                    id: account.id,
-                    isCustomer: account.isCustomer
-                    }
-                };
             //TODO cambiar el expires a 3600 en producción
-            jwt.sign(payload, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
+            jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
                 if(err) {
                     throw err;
                 } else {
-                    res.json({token});
+                    res.status(201).json({
+                    _id: account.id,
+                    username: account.username,
+                    email: account.email,
+                    isCustomer: account.isCustomer,
+                    token: token});
                 }
             });
 
