@@ -19,8 +19,11 @@ customerCtrl.getCustomers = async (req, res) => {
 
 customerCtrl.getCustomer = async (req, res) => {
     try{ 
-        const customer =  await Customer.findById(req.params.id)
-        Account.populate(customer, {path: "account"},function(err, customer){
+        const customer = await Customer.findOne( {account: req.params.accountId} );
+        
+        Account.populate(customer, {path: "account"}, function(err, customer){
+            if (err) return handleError(err);
+
             res.status(200).json(customer);
         });
     } catch (err) {

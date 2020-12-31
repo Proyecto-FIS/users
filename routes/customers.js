@@ -29,13 +29,13 @@ router.route('/').post(createCustomer);
 
 
 /**
- * @route GET /customers/{id}
+ * @route GET /customers/{accountId}
  * @group customers - customers operations
- * @param {string} id.query.required - customer id required
- * @returns {object} 200 - The customer with given id
+ * @param {string} id.query.required - Account id required
+ * @returns {object} 200 - The customer with given account id
  * @returns {Error}  500 - Unexpected error
  */
-router.route('/:id').get(getCustomer);
+router.route('/:accountId').get(getCustomer);
 
 /**
  * @route PUT /customers/{id}
