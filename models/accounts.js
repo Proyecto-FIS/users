@@ -40,13 +40,13 @@ accountSchema.pre("save", function(next) {
     next();
 });
 
-accountSchema.pre("updateOne", function(next) {
-    if(!this.isModified("password")) {
-        return next();
-    }
-    this.password = Bcrypt.hashSync(this.password, 10);
-    next();
-});
+// accountSchema.pre("updateOne", function(next) {
+//     if(!this.isModified("password")) {
+//         return next();
+//     }
+//     this.password = Bcrypt.hashSync(this.password, 10);
+//     next();
+// });
 
 
 const Account = mongoose.model('Account', accountSchema);
