@@ -4,6 +4,7 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = 'y';
 const cfg = require('config');
 const Customer = require('../models/customers');
 const Account = require('../models/accounts');
+const Bcrypt = require("bcryptjs");
 
 customerCtrl.getCustomers = async (req, res) => {
     try { 
@@ -101,6 +102,8 @@ customerCtrl.updateCustomer = async (req, res) => {
         var oldPassword = account.password;
         if(!password){
             password = oldPassword;
+        } else {
+            password = Bcrypt.hashSync(password, 10);
         }
 
         await Account.updateOne(account, { email, password }, { runValidators: true });
