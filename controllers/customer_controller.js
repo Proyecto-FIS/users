@@ -76,16 +76,39 @@ customerCtrl.createCustomer = async (req, res) => {
 }
 
 customerCtrl.updateCustomer = async (req, res) => {
-    const { username, email, pictureUrl, address } = req.body
+    var { email, pictureUrl, address, password } = req.body
+
     try {
-        const customer = await Customer.findById(req.params.id)
-        await Customer.updateOne(customer, { pictureUrl, address })
+        const customer = await Customer.findOne( {account: req.params.accountId} );
+
+        var oldPictureUrl = customer.pictureUrl;
+        if(pictureUrl === oldPictureUrl){
+            pictureUrl = oldPictureUrl;
+        }
+        var oldAddress = customer.address;
+        if(address === oldAddress){
+            address = oldAddress;
+        }
+
+        await Customer.updateOne(customer, { pictureUrl, address }, { runValidators: true })
        
-        await Account.findOneAndUpdate({"_id": customer.account}, { username, email })
+        const account = await Account.findOne({"_id": customer.account});
+
+        var oldEmail = account.email;
+        if(email === oldEmail){
+            email = oldEmail;
+        }
+        var oldPassword = account.password;
+        if(!password){
+            password = oldPassword;
+        }
+
+        await Account.updateOne(account, { email, password }, { runValidators: true });
+
         res.status(200).json({message: "Customer updated"})
     } catch (err) {
         console.log(Date() + "-" + err)
-        res.sendStatus(500)
+        res.status(500).json({errors:err})
     }
 }
 

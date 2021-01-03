@@ -44,7 +44,7 @@ router.route('/:accountId').get(getCustomer);
  * @returns {object} 200 - Updated customer
  * @returns {Error}  500 - Unexpected error
  */
-router.route('/:id').put(updateCustomer);
+router.route('/:accountId').put(updateCustomer);
 
 
 /**
