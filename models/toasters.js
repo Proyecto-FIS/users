@@ -33,8 +33,35 @@ const toasterSchema = new mongoose.Schema({
     address: {
         type: String
     },
-    socialNetworks: {
-        type: [String]
+    instagramUrl: {
+        type: String,
+        validate: {
+            // Validación solo de URL. Debería mejorarse para verificar que es un perfil de la red en cuestión
+            validator: function(v) {
+                return /^$|^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/.test(v);
+            },
+            message: "Incorrect URL"
+        },
+    },
+    facebookUrl: {
+        type: String,
+        validate: {
+            // Validación solo de URL. Debería mejorarse para verificar que es un perfil de la red en cuestión
+            validator: function(v) {
+                return /^$|^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/.test(v);
+            },
+            message: "Incorrect URL"
+        },
+    },
+    twitterUrl: {
+        type: String,
+        validate: {
+            // Validación solo de URL. Debería mejorarse para verificar que es un perfil de la red en cuestión
+            validator: function(v) {
+                return /^$|^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/.test(v);
+            },
+            message: "Incorrect URL"
+        },
     },
     account: {
         type: mongoose.Schema.Types.ObjectId, ref: "Account"

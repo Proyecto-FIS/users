@@ -18,8 +18,11 @@ toasterCtrl.getToasters = async (req, res) => {
 
 toasterCtrl.getToaster = async (req, res) => {
     try{ 
-        const toaster =  await Toaster.findById(req.params.id)
+        const toaster = await Toaster.findOne( {account: req.params.accountId} );
+
         Account.populate(toaster, {path: "account"},function(err, toaster){
+            if (err) return handleError(err);
+
             res.status(200).json(toaster);
         }) 
     } catch (err) {
@@ -29,7 +32,9 @@ toasterCtrl.getToaster = async (req, res) => {
 }
 
 toasterCtrl.createToaster = async (req, res) => {
-    const { username, password, email, name, description, phoneNumber, pictureUrl, address, socialNetworks } = req.body;
+    const { username, password, email, name, description, phoneNumber, 
+        pictureUrl, address, instagramUrl, facebookUrl, twitterUrl } = req.body;
+
     const isCustomer = false;
     const newAccount = new Account({ username, password, email, isCustomer });
     try { 
@@ -40,7 +45,8 @@ toasterCtrl.createToaster = async (req, res) => {
         }
 
         const account = await newAccount.save();
-        const newToaster = new Toaster({ name, description, phoneNumber, pictureUrl, address, socialNetworks, account });
+        const newToaster = new Toaster({ name, description, phoneNumber, pictureUrl, address, 
+                                                instagramUrl, facebookUrl, twitterUrl, account });
         try {
             await newToaster.save();
 
@@ -71,11 +77,65 @@ toasterCtrl.createToaster = async (req, res) => {
 }
 
 toasterCtrl.updateToaster = async (req, res) => {
-    const { username, email, name, description, phoneNumber, pictureUrl, address, socialNetworks } = req.body
+    var { email, name, description, phoneNumber, pictureUrl, 
+        address, instagramUrl, facebookUrl, twitterUrl, password } = req.body
+
     try {
-        const toaster = await Toaster.findById(req.params.id)
-        await Toaster.update(toaster, { name, description, phoneNumber, pictureUrl, address, socialNetworks })
-        await Account.findOneAndUpdate({"_id": toaster.account}, { username, email })
+        const toaster = await Toaster.findOne( {account: req.params.accountId} );
+
+        var oldName = toaster.name;
+        if(name === oldName){
+            name = oldName;
+        }
+        var oldDescription = toaster.description;
+        if(description === oldDescription){
+            description = oldDescription;
+        }
+        var oldPhoneNumber = toaster.phoneNumber;
+        if(phoneNumber === oldPhoneNumber){
+            phoneNumber = oldPhoneNumber;
+        }
+        var oldPictureUrl = toaster.pictureUrl;
+        if(pictureUrl === oldPictureUrl){
+            pictureUrl = oldPictureUrl;
+        }
+        var oldAddress = toaster.address;
+        if(address === oldAddress){
+            address = oldAddress;
+        }
+        var oldInstagramUrl = toaster.instagramUrl;
+        if(instagramUrl === oldInstagramUrl){
+            instagramUrl = oldInstagramUrl;
+        }
+        var oldFacebookUrl = toaster.facebookUrl;
+        if(facebookUrl === oldFacebookUrl){
+            facebookUrl = oldFacebookUrl;
+        }
+        var oldTwitterUrl = toaster.twitterUrl;
+        if(twitterUrl === oldTwitterUrl){
+            twitterUrl = oldTwitterUrl;
+        }
+
+        await Toaster.updateOne(toaster, { name, description, phoneNumber, pictureUrl, 
+                                        address, instagramUrl, facebookUrl, twitterUrl },
+                                        { runValidators: true });
+
+                                    
+        const account = await Account.findOne({"_id": toaster.account});
+
+        var oldEmail = account.email;
+        if(email === oldEmail){
+            email = oldEmail;
+        }
+        var oldPassword = account.password;
+        if(!password){
+            password = oldPassword;
+        } else {
+            password = Bcrypt.hashSync(password, 10);
+        }
+
+        await Account.updateOne(account, { email, password }, { runValidators: true });
+
         res.status(200).json({message: "Toaster updated"})
     } catch (err) {
         console.log(Date() + "-" + err)

@@ -6,17 +6,6 @@ const Customer = require('../models/customers');
 const Account = require('../models/accounts');
 const Bcrypt = require("bcryptjs");
 
-customerCtrl.getCustomers = async (req, res) => {
-    try { 
-        const customers =  await Customer.find();
-        Account.populate(customers, {path: "account"},function(err, customers){
-            res.status(200).json(customers);
-        });
-    } catch (err) {
-        console.log(Date() + "-" + err);
-        res.sendStatus(500);
-    }
-}
 
 customerCtrl.getCustomer = async (req, res) => {
     try{ 
