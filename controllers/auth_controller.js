@@ -82,10 +82,10 @@ authCtrl.getAccountByToken = async (req, res) => {
     //Verificación del token
     try {
         const decoded = jwt.verify(token, cfg.get("jwttoken"));
-        //Añadimos a la cabecera el usuario identificado
+
         var accountId = decoded.id;
     } catch(err) {
-        res.status(401);
+        return res.status(401).json({ error:err.message});
     }
 
     try {

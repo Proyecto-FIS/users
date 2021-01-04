@@ -11,13 +11,6 @@ const { getCustomers, getCustomer, createCustomer, updateCustomer, deleteCustome
  */
 
 /////////////// Routes /////////////////
-/**
- * @route GET /customers
- * @group customers - customers operations
- * @returns {object} 200 - A complete list of customers
- * @returns {Error}  500 - Unexpected error
- */
-router.route('/').get(getCustomers);
 
 /**
  * @route POST /customers
