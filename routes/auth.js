@@ -43,8 +43,7 @@ router.post("/login", async (req, res) => {
                 id: account.id
                 }
             };
-        //TODO cambiar el expires a 3600 en producción
-        jwt.sign(payload, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
+        jwt.sign(payload, cfg.get("jwttoken"), {expiresIn: process.env.TOKEN_EXPIRATION_TIME || 3600000}, (err, token) => {
             if(err) {
                 throw err;
             } else {
