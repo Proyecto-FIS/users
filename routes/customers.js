@@ -1,7 +1,12 @@
 const { Router } = require('express');
 const router = Router();
+const multer = require("multer")
+const upload = multer({ dest: "" })
+
 
 const { getCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer } = require('../controllers/customer_controller');
+
+
 
 /////////////// Swagger Model Definition /////////////////
 /**
@@ -25,7 +30,7 @@ router.route('/').get(getCustomers);
  * @returns {object} 201 - customer created
  * @returns {Error}  500 - Unexpected error creating a customer
  */
-router.route('/').post(createCustomer);
+router.route('/').post(upload.single("picture"), createCustomer)
 
 
 /**

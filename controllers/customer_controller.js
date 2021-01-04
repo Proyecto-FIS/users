@@ -5,6 +5,10 @@ const cfg = require('config');
 const Customer = require('../models/customers');
 const Account = require('../models/accounts');
 
+require('dotenv/config')
+const AWS = require('aws-sdk')
+const { v4: uuidv4 } = require('uuid')
+
 customerCtrl.getCustomers = async (req, res) => {
     try { 
         const customers =  await Customer.find();
@@ -30,12 +34,36 @@ customerCtrl.getCustomer = async (req, res) => {
 }
 
 customerCtrl.createCustomer = async (req, res) => {
-    const { username, password, email, pictureUrl, address } = req.body;
+    const { username, password, email, address } = req.body;
+    let  myFile = req.file.originalname.split(".")
+    const fileType = myFile[myFile.length - 1]
+
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `${uuidv4()}.${fileType}`,
+        Body: req.file.buffer
+    }
+    const S3 = new AWS.S3({
+        accessKeyId: process.env.AWS_ID,
+        secretAccessKey: process.env.AWS_SECRET_NAME,
+        sessionToken: process.env.AWS_SESSION_TOKEN
+    })
+
+    try{
+        var s3upload = S3.upload(params).promise();
+        await s3upload
+            .then(function(data) {
+                pictureUrl = data.Location
+            });
+    } catch(err) {
+        console.log(Date() + "-" + err)
+        pictureUrl = ''
+    }
     const newAccount = new Account({ username, password, email });
     try { 
         const account = await newAccount.save();
-        const newCustomer = new Customer({ pictureUrl, address, account });
-        try {
+        try{
+            const newCustomer = new Customer({ pictureUrl, address, account });
             await newCustomer.save();
 
             const payload = {
@@ -43,10 +71,10 @@ customerCtrl.createCustomer = async (req, res) => {
                     id: account.id
                     }
                 };
-            //TODO cambiar el expires a 3600 en producción
-            jwt.sign(payload, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
+            jwt.sign(payload, cfg.get("jwttoken"), {expiresIn: process.env.TOKEN_EXPIRATION_TIME || 3600000}, (err, token) => {
                 if(err) {
-                    throw err;
+                    console.log(Date() + "-" + err)
+                    res.sendStatus(500)
                 } else {
                     res.json({token});
                 }
@@ -56,14 +84,14 @@ customerCtrl.createCustomer = async (req, res) => {
             // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account})
             console.log(Date() + "-" + err)
-            res.sendStatus(500)    
+            res.sendStatus(500) 
         }
     }
     catch (err) {
         console.log(Date() + "-" + err);
         res.sendStatus(500);
     }
-}
+ }
 
 customerCtrl.updateCustomer = async (req, res) => {
     const { username, email, pictureUrl, address } = req.body
