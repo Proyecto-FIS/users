@@ -28,19 +28,19 @@ customerCtrl.createCustomer = async (req, res) => {
     const { username, password, email, address } = req.body;
     const isCustomer = true;
 
-    let  myFile = req.file.originalname.split(".")
-    const fileType = myFile[myFile.length - 1]
-    const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${uuidv4()}.${fileType}`,
-        Body: req.file.buffer
-    }
-    const S3 = new AWS.S3({
-        accessKeyId: process.env.AWS_ID,
-        secretAccessKey: process.env.AWS_SECRET_NAME,
-        sessionToken: process.env.AWS_SESSION_TOKEN
-    })
-    try{	
+    try{
+        let  myFile = req.file.originalname.split(".")
+        const fileType = myFile[myFile.length - 1]
+        const params = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: `${uuidv4()}.${fileType}`,
+            Body: req.file.buffer
+        }
+        const S3 = new AWS.S3({
+            accessKeyId: process.env.AWS_ID,
+            secretAccessKey: process.env.AWS_SECRET_NAME,
+            sessionToken: process.env.AWS_SESSION_TOKEN
+        })	
         var s3upload = S3.upload(params).promise();	
         await s3upload
             .then(function(data) {	
