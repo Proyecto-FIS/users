@@ -36,22 +36,22 @@ router.route('/').post(upload.single("picture"), createToaster)
 
 
 /**
- * @route GET /toasters/{id}
+ * @route GET /toasters/{accountId}
  * @group toasters - Toasters operations
- * @param {string} id.query.required - toaster id required
- * @returns {object} 200 - The toaster with given id
+ * @param {string} id.query.required - account Id required
+ * @returns {object} 200 - The toaster with given accountId
  * @returns {Error}  500 - Unexpected error
  */
-router.route('/:id').get(getToaster)
+router.route('/:accountId').get(getToaster)
 
 /**
- * @route PUT /toasters/{id}
+ * @route PUT /toasters/{accountId}
  * @group toasters - Toasters operations
- * @param {string} id.query.required - toaster id required
+ * @param {string} id.query.required - account Id required
  * @returns {object} 200 - Updated toaster
  * @returns {Error}  404 - Unexpected error
  */
-router.route('/:id').put(updateToaster)
+router.route('/:accountId').put(updateToaster)
 
 /**
  * @route DELETE /toasters/{id}

@@ -13,7 +13,7 @@ module.exports = function(req, res, next) {
     try {
         const decoded = jwt.verify(token, config.get("jwttoken"));
         //Añadimos a la cabecera el usuario identificado
-        req.account = decoded.account;
+        req.accountId = decoded.id;
         next();
     } catch(err) {
         res.status(401);

@@ -4,27 +4,18 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = 'y';
 const cfg = require('config');
 const Customer = require('../models/customers');
 const Account = require('../models/accounts');
-
+const Bcrypt = require("bcryptjs");
 require('dotenv/config')
 const AWS = require('aws-sdk')
 const { v4: uuidv4 } = require('uuid')
 
-customerCtrl.getCustomers = async (req, res) => {
-    try { 
-        const customers =  await Customer.find();
-        Account.populate(customers, {path: "account"},function(err, customers){
-            res.status(200).json(customers);
-        });
-    } catch (err) {
-        console.log(Date() + "-" + err);
-        res.sendStatus(500);
-    }
-}
-
 customerCtrl.getCustomer = async (req, res) => {
     try{ 
-        const customer =  await Customer.findById(req.params.id)
-        Account.populate(customer, {path: "account"},function(err, customer){
+        const customer = await Customer.findOne( {account: req.params.accountId} );
+        
+        Account.populate(customer, {path: "account"}, function(err, customer){
+            if (err) return handleError(err);
+
             res.status(200).json(customer);
         });
     } catch (err) {
@@ -35,9 +26,10 @@ customerCtrl.getCustomer = async (req, res) => {
 
 customerCtrl.createCustomer = async (req, res) => {
     const { username, password, email, address } = req.body;
+    const isCustomer = true;
+
     let  myFile = req.file.originalname.split(".")
     const fileType = myFile[myFile.length - 1]
-
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
         Key: `${uuidv4()}.${fileType}`,
@@ -48,35 +40,40 @@ customerCtrl.createCustomer = async (req, res) => {
         secretAccessKey: process.env.AWS_SECRET_NAME,
         sessionToken: process.env.AWS_SESSION_TOKEN
     })
-
-    try{
-        var s3upload = S3.upload(params).promise();
+    try{	
+        var s3upload = S3.upload(params).promise();	
         await s3upload
-            .then(function(data) {
-                pictureUrl = data.Location
-            });
-    } catch(err) {
+            .then(function(data) {	
+                pictureUrl = data.Location	
+            });	
+    } catch(err) {	
         console.log(Date() + "-" + err)
         pictureUrl = ''
     }
-    const newAccount = new Account({ username, password, email });
+
+    const newAccount = new Account({ username, password, email, isCustomer });
     try { 
+        accountExists = await Account.findOne({username});
+        
+        if(accountExists){
+            return res.status(400).json( { errors:[{msg:"Account already exists"}] });
+        }
+
         const account = await newAccount.save();
-        try{
-            const newCustomer = new Customer({ pictureUrl, address, account });
+        const newCustomer = new Customer({ pictureUrl, address, account });
+        try {
             await newCustomer.save();
 
-            const payload = {
-                account: {
-                    id: account.id
-                    }
-                };
-            jwt.sign(payload, cfg.get("jwttoken"), {expiresIn: process.env.TOKEN_EXPIRATION_TIME || 3600000}, (err, token) => {
+            jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:process.env.TOKEN_EXPIRATION_TIME || 3600000}, (err, token) => {
                 if(err) {
-                    console.log(Date() + "-" + err)
-                    res.sendStatus(500)
+                    throw err;
                 } else {
-                    res.json({token});
+                    res.status(201).json({
+                    _id: account.id,
+                    username: account.username,
+                    email: account.email,
+                    isCustomer: account.isCustomer,
+                    token: token});
                 }
             });
 
@@ -84,26 +81,51 @@ customerCtrl.createCustomer = async (req, res) => {
             // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account})
             console.log(Date() + "-" + err)
-            res.sendStatus(500) 
+            res.sendStatus(500)    
         }
     }
     catch (err) {
         console.log(Date() + "-" + err);
         res.sendStatus(500);
     }
- }
+}
 
 customerCtrl.updateCustomer = async (req, res) => {
-    const { username, email, pictureUrl, address } = req.body
+    var { email, pictureUrl, address, password } = req.body
+
     try {
-        const customer = await Customer.findById(req.params.id)
-        await Customer.updateOne(customer, { pictureUrl, address })
+        const customer = await Customer.findOne( {account: req.params.accountId} );
+
+        var oldPictureUrl = customer.pictureUrl;
+        if(pictureUrl === oldPictureUrl){
+            pictureUrl = oldPictureUrl;
+        }
+        var oldAddress = customer.address;
+        if(address === oldAddress){
+            address = oldAddress;
+        }
+
+        await Customer.updateOne(customer, { pictureUrl, address }, { runValidators: true })
        
-        await Account.findOneAndUpdate({"_id": customer.account}, { username, email })
+        const account = await Account.findOne({"_id": customer.account});
+
+        var oldEmail = account.email;
+        if(email === oldEmail){
+            email = oldEmail;
+        }
+        var oldPassword = account.password;
+        if(!password){
+            password = oldPassword;
+        } else {
+            password = Bcrypt.hashSync(password, 10);
+        }
+
+        await Account.updateOne(account, { email, password }, { runValidators: true });
+
         res.status(200).json({message: "Customer updated"})
     } catch (err) {
         console.log(Date() + "-" + err)
-        res.sendStatus(500)
+        res.status(500).json({errors:err})
     }
 }
 

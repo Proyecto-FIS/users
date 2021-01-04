@@ -2,7 +2,13 @@ const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema({
     pictureUrl: {
-        type: String
+        type: String,
+        validate: {
+            validator: function(v) {
+                return /^$|(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|jpeg|gif|png)$/.test(v);
+            },
+            message: "Incorrect picture URL"
+        }
     },
     address: {
         type: String
