@@ -47,10 +47,9 @@ customerCtrl.createCustomer = async (req, res) => {
                 pictureUrl = data.Location	
             });	
     } catch(err) {	
-        console.log(Date() + "-" + err)
         pictureUrl = ''
     }
-
+    console.log(pictureUrl)
     const newAccount = new Account({ username, password, email, isCustomer });
     try { 
         accountExists = await Account.findOne({username});
@@ -61,9 +60,9 @@ customerCtrl.createCustomer = async (req, res) => {
 
         const account = await newAccount.save();
         const newCustomer = new Customer({ pictureUrl, address, account });
+        
         try {
             await newCustomer.save();
-
             jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:parseInt(process.env.TOKEN_EXPIRATION_TIME) || 3600000}, (err, token) => {
                 if(err) {
                     throw err;

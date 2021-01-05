@@ -58,8 +58,7 @@ toasterCtrl.createToaster = async (req, res) => {
                 pictureUrl = data.Location
             });
     } catch(err) {
-        console.log(Date() + "-" + err)
-        pictureUrl = req.body.pictureUrl
+        pictureUrl = ''
     }
 
     const newAccount = new Account({ username, password, email, isCustomer });
