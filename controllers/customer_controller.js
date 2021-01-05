@@ -49,7 +49,6 @@ customerCtrl.createCustomer = async (req, res) => {
     } catch(err) {	
         pictureUrl = ''
     }
-    console.log(pictureUrl)
     const newAccount = new Account({ username, password, email, isCustomer });
     try { 
         accountExists = await Account.findOne({username});
@@ -94,7 +93,7 @@ customerCtrl.updateCustomer = async (req, res) => {
 
     try {
         const customer = await Customer.findOne( {account: req.params.accountId} );
-
+        
         var oldPictureUrl = customer.pictureUrl;
         if(pictureUrl === oldPictureUrl){
             pictureUrl = oldPictureUrl;
@@ -131,6 +130,24 @@ customerCtrl.updateCustomer = async (req, res) => {
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
         const customer = await Customer.findOneAndDelete(req.params.id)
+        try{
+            const S3 = new AWS.S3({
+                accessKeyId: process.env.AWS_ID,
+                secretAccessKey: process.env.AWS_SECRET_NAME,
+                sessionToken: process.env.AWS_SESSION_TOKEN
+            })
+
+            const file = customer.pictureUrl.split("/")
+            const key = file[file.length - 1]
+
+            const params = {  Bucket: process.env.AWS_BUCKET_NAME, Key: key };
+            
+            S3.deleteObject(params, function(err) {
+                if (err) console.log(err);
+            });
+        } catch(err){
+            console.log(err)
+        }
         await Account.deleteOne( {"_id": customer.account})
         res.status(200).json({message: 'customer deleted'})
     } catch(err) {

@@ -170,6 +170,24 @@ toasterCtrl.updateToaster = async (req, res) => {
 toasterCtrl.deleteToaster = async (req, res) => {
     try {
         const toaster = await Toaster.findOneAndDelete(req.params.id)
+        try{
+            const S3 = new AWS.S3({
+                accessKeyId: process.env.AWS_ID,
+                secretAccessKey: process.env.AWS_SECRET_NAME,
+                sessionToken: process.env.AWS_SESSION_TOKEN
+            })
+
+            const file = toaster.pictureUrl.split("/")
+            const key = file[file.length - 1]
+
+            const params = {  Bucket: process.env.AWS_BUCKET_NAME, Key: key };
+            
+            S3.deleteObject(params, function(err) {
+                if (err) console.log(err);
+            });
+        } catch(err){
+            console.log(err)
+        }
         await Account.deleteOne( {"_id": toaster.account})
         res.status(200).json({message: 'toaster deleted'})
     } catch(err) {
