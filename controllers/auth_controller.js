@@ -28,7 +28,7 @@ authCtrl.login = async (req, res) => {
             return res.status(400).json( { errors:[{msg:"Invalid login"}] });
         }
 
-        jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:process.env.TOKEN_EXPIRATION_TIME || 3600000}, (err, token) => {
+        jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:parseInt(process.env.TOKEN_EXPIRATION_TIME) || 3600000}, (err, token) => {
             if(err) {
                 throw err;
             } else {

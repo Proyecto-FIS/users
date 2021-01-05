@@ -64,7 +64,7 @@ customerCtrl.createCustomer = async (req, res) => {
         try {
             await newCustomer.save();
 
-            jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:process.env.TOKEN_EXPIRATION_TIME || 3600000}, (err, token) => {
+            jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:parseInt(process.env.TOKEN_EXPIRATION_TIME) || 3600000}, (err, token) => {
                 if(err) {
                     throw err;
                 } else {
