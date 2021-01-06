@@ -51,7 +51,7 @@ router.route('/:accountId').get(getToaster)
  * @returns {object} 200 - Updated toaster
  * @returns {Error}  404 - Unexpected error
  */
-router.route('/:accountId').put(updateToaster)
+router.route('/:accountId').put(upload.single("picture"), updateToaster)
 
 /**
  * @route DELETE /toasters/{id}

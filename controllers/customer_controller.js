@@ -28,25 +28,9 @@ customerCtrl.createCustomer = async (req, res) => {
     const { username, password, email, address } = req.body;
     const isCustomer = true;
 
-    try{
-        let  myFile = req.file.originalname.split(".")
-        const fileType = myFile[myFile.length - 1]
-        const params = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: `${uuidv4()}.${fileType}`,
-            Body: req.file.buffer
-        }
-        const S3 = new AWS.S3({
-            accessKeyId: process.env.AWS_ID,
-            secretAccessKey: process.env.AWS_SECRET_NAME,
-            sessionToken: process.env.AWS_SESSION_TOKEN
-        })	
-        var s3upload = S3.upload(params).promise();	
-        await s3upload
-            .then(function(data) {	
-                pictureUrl = data.Location	
-            });	
-    } catch(err) {	
+    if(req.file){
+        pictureUrl = await imgUpload(req.file)
+    } else {
         pictureUrl = ''
     }
     const newAccount = new Account({ username, password, email, isCustomer });
@@ -89,11 +73,17 @@ customerCtrl.createCustomer = async (req, res) => {
 }
 
 customerCtrl.updateCustomer = async (req, res) => {
-    var { email, pictureUrl, address, password } = req.body
-
+    var { email, address, password } = req.body
     try {
         const customer = await Customer.findOne( {account: req.params.accountId} );
-        
+        if(req.file){
+            pictureUrl = await imgUpload(req.file)
+            await imgDelete(customer.pictureUrl)
+        }
+        else{
+            pictureUrl = customer.pictureUrl
+        }
+
         var oldPictureUrl = customer.pictureUrl;
         if(pictureUrl === oldPictureUrl){
             pictureUrl = oldPictureUrl;
@@ -130,24 +120,7 @@ customerCtrl.updateCustomer = async (req, res) => {
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
         const customer = await Customer.findOneAndDelete(req.params.id)
-        try{
-            const S3 = new AWS.S3({
-                accessKeyId: process.env.AWS_ID,
-                secretAccessKey: process.env.AWS_SECRET_NAME,
-                sessionToken: process.env.AWS_SESSION_TOKEN
-            })
-
-            const file = customer.pictureUrl.split("/")
-            const key = file[file.length - 1]
-
-            const params = {  Bucket: process.env.AWS_BUCKET_NAME, Key: key };
-            
-            S3.deleteObject(params, function(err) {
-                if (err) console.log(err);
-            });
-        } catch(err){
-            console.log(err)
-        }
+        await imgDelete(customer.pictureUrl)
         await Account.deleteOne( {"_id": customer.account})
         res.status(200).json({message: 'customer deleted'})
     } catch(err) {
@@ -156,5 +129,51 @@ customerCtrl.deleteCustomer = async (req, res) => {
     }
 }
 
+async function imgDelete(pictureUrl){
+    try{
+        const S3 = new AWS.S3({
+            accessKeyId: process.env.AWS_ID,
+            secretAccessKey: process.env.AWS_SECRET_NAME,
+            sessionToken: process.env.AWS_SESSION_TOKEN
+        })
+
+        const file = pictureUrl.split("/")
+        const key = file[file.length - 1]
+
+        const params = { Bucket: process.env.AWS_BUCKET_NAME, Key: key };
+        
+        S3.deleteObject(params, function(err) {
+            if (err) console.log(err);
+        });
+    } catch(err){
+        console.log(err)
+    }
+}
+
+async function imgUpload(file){
+    let url = ''
+    try{
+        let  myFile = file.originalname.split(".")
+        const fileType = myFile[myFile.length - 1]
+        const params = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: `${uuidv4()}.${fileType}`,
+            Body: file.buffer
+        }
+        const S3 = new AWS.S3({
+            accessKeyId: process.env.AWS_ID,
+            secretAccessKey: process.env.AWS_SECRET_NAME,
+            sessionToken: process.env.AWS_SESSION_TOKEN
+        })	
+        var s3upload = S3.upload(params).promise();	
+        await s3upload
+            .then(function(data) {	
+                url = data.Location	
+            });	
+    } catch(err) {	
+        console.log(err)
+    }
+    return url
+}
 
 module.exports = customerCtrl
