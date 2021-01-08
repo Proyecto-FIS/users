@@ -4,10 +4,6 @@ var bodyParser = require('body-parser');
 const app = require('./server.js');
 const dbConnect = require('./db.js');
 
-const toasters = require('./routes/toasters');
-const customers = require('./routes/customers');
-const auth = require('./routes/auth');
-
 var port = process.env.PORT || 3000;
 var BASE_API_PATH = "/api/v1";
 
@@ -20,18 +16,6 @@ dbConnect().then(
         console.log("Connection error: "+err);
     }
 )
-
-//Routes
-app.get("/", (req, res) => {
-    res.send("<html><body><h1> User management index page. </h1></body> </html>");
-});
-
-app.use(BASE_API_PATH + '/customers', customers);
-app.use(BASE_API_PATH + '/toasters', toasters);
-app.use(BASE_API_PATH + '/auth', auth);
-
-
-
 
 // Swagger documentation //
 const expressSwagger = require('express-swagger-generator')(app);
