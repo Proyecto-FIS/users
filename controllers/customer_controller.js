@@ -106,9 +106,11 @@ customerCtrl.updateCustomer = async (req, res) => {
 
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
-        const customer = await Customer.findOneAndDelete(req.params.id)
+        const customer = await Customer.findOne( {account: req.params.accountId} );
+
         await Account.deleteOne( {"_id": customer.account})
-        res.status(200).json({message: 'customer deleted'})
+        await Customer.deleteOne(customer)
+        res.status(200).json({message: 'Customer deleted'})
     } catch(err) {
         console.log(Date() + "-" + err)
         res.status(500).json(err)
