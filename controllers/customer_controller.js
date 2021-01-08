@@ -8,7 +8,7 @@ const Bcrypt = require("bcryptjs");
 
 
 customerCtrl.getCustomer = async (req, res) => {
-    try{ 
+    try { 
         const customer = await Customer.findOne( {account: req.params.accountId} );
         
         Account.populate(customer, {path: "account"}, function(err, customer){
@@ -18,7 +18,7 @@ customerCtrl.getCustomer = async (req, res) => {
         });
     } catch (err) {
         console.log(Date() + "-" + err);
-        res.sendStatus(404);
+        res.status(404).json(err);
     }
 }
 
@@ -26,7 +26,7 @@ customerCtrl.createCustomer = async (req, res) => {
     const { username, password, email, pictureUrl, address } = req.body;
     const isCustomer = true;
     const newAccount = new Account({ username, password, email, isCustomer });
-    try { 
+    try {
         accountExists = await Account.findOne({username});
         
         if(accountExists){
@@ -56,12 +56,12 @@ customerCtrl.createCustomer = async (req, res) => {
             // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account})
             console.log(Date() + "-" + err)
-            res.sendStatus(500)    
+            res.status(500).json(err);
         }
     }
     catch (err) {
         console.log(Date() + "-" + err);
-        res.sendStatus(500);
+        res.status(500).json(err);
     }
 }
 
@@ -100,7 +100,7 @@ customerCtrl.updateCustomer = async (req, res) => {
         res.status(200).json({message: "Customer updated"})
     } catch (err) {
         console.log(Date() + "-" + err)
-        res.status(500).json({errors:err})
+        res.status(500).json(err);
     }
 }
 
@@ -111,7 +111,7 @@ customerCtrl.deleteCustomer = async (req, res) => {
         res.status(200).json({message: 'customer deleted'})
     } catch(err) {
         console.log(Date() + "-" + err)
-        res.sendStatus(500)
+        res.status(500).json(err)
     }
 }
 
