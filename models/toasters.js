@@ -4,7 +4,7 @@ const toasterSchema = new mongoose.Schema({
     name: {
         type: String,
         required: 'Name is required',
-        minlength: [3, "Minimun username length is 3 characters"],
+        minlength: [3, "Minimun professional name length is 3 characters"],
         unique: true
     },
     description: {

@@ -22,7 +22,6 @@ const { getCustomers, getCustomer, createCustomer, updateCustomer, deleteCustome
  */
 router.route('/').post(upload.single("picture"), createCustomer);
 
-
 /**
  * @route GET /customers/{accountId}
  * @group customers - customers operations
@@ -33,23 +32,22 @@ router.route('/').post(upload.single("picture"), createCustomer);
 router.route('/:accountId').get(getCustomer);
 
 /**
- * @route PUT /customers/{id}
+ * @route PUT /customers/{accountId}
  * @group customers - customers operations
- * @param {string} id.query.required - customer id required
+ * @param {string} id.query.required - Account id required
  * @returns {object} 200 - Updated customer
  * @returns {Error}  500 - Unexpected error
  */
 router.route('/:accountId').put(upload.single("picture"), updateCustomer);
 
-
 /**
- * @route DELETE /customers/{id}
+ * @route DELETE /customers/{accountId}
  * @group customers - customers operations
- * @param {string} id.query.required - customer id required
+ * @param {string} id.query.required - Account id required
  * @returns {object} 200 - Deleted customer
  * @returns {Error}  404 - Unexpected error
  */
-router.route('/:id').delete(deleteCustomer);
+router.route('/:accountId').delete(deleteCustomer);
 
 
 module.exports = router;

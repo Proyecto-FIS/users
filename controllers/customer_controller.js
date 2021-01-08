@@ -60,7 +60,7 @@ customerCtrl.getCustomer = async (req, res) => {
         });
     } catch (err) {
         console.log(Date() + "-" + err);
-        res.sendStatus(404);
+        res.status(404).json(err);
     }
 }
 
@@ -103,12 +103,12 @@ customerCtrl.createCustomer = async (req, res) => {
             // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account})
             console.log(Date() + "-" + err)
-            res.sendStatus(500)    
+            res.status(500).json(err);
         }
     }
     catch (err) {
         console.log(Date() + "-" + err);
-        res.sendStatus(500);
+        res.status(500).json(err);
     }
 }
 
@@ -153,20 +153,21 @@ customerCtrl.updateCustomer = async (req, res) => {
         res.status(200).json({message: "Customer updated"})
     } catch (err) {
         console.log(Date() + "-" + err)
-        res.status(500).json({errors:err})
+        res.status(500).json(err);
     }
 }
 
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
-        const customer = await Customer.findOneAndDelete(req.params.id)
+        const customer = await Customer.findOne( {account: req.params.accountId} );
         await imgDelete(customer.pictureUrl)
         //removeHistoryCommand.execute(customer.account._id)
         await Account.deleteOne( {"_id": customer.account})
+        await Customer.deleteOne(customer)
         res.status(200).json({message: 'customer deleted'})
     } catch(err) {
         console.log(Date() + "-" + err)
-        res.sendStatus(500)
+        res.status(500).json(err)
     }
 }
 
