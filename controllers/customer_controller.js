@@ -12,7 +12,7 @@ const createCircuitBreaker =  require('../circuitBreaker.js').createCircuitBreak
 const axios = require("axios");
 
 const awscommand = createCircuitBreaker({
-    name: "CB AWS calls",
+    name: "AWS calls",
     errorThreshold: 20,
     timeout: 4000,
     healthRequests: 5,
@@ -31,14 +31,14 @@ const awscommand = createCircuitBreaker({
 });
   
 const removeHistoryCommand = createCircuitBreaker({
-    name: "CB Coffaine Delivery MS Calls",
+    name: "Coffaine Sales MS Calls",
     errorThreshold: 20,
     timeout: 8000,
     healthRequests: 5,
     sleepTimeMS: 100,
     maxRequests: 0,
     errorHandler: (err) => false,
-    request: () => axios.get("https://jsonplaceholder.typicode.com/todos/1"),
+    request: (id) => axios.get("https://jsonplaceholder.typicode.com/todos/1"),
     fallback: (err, args) => {
       if (err && err.isAxiosError) throw err;
       throw {
@@ -158,15 +158,10 @@ customerCtrl.updateCustomer = async (req, res) => {
 }
 
 customerCtrl.deleteCustomer = async (req, res) => {
-    //  removeHistoryCommand.execute()
-    // .then(response => res.status(200).json(response.data))
-    // .catch(err => {
-    //     console.log(err)
-    //     res.status(500).send(err)})
-
     try {
         const customer = await Customer.findOneAndDelete(req.params.id)
         await imgDelete(customer.pictureUrl)
+        //removeHistoryCommand.execute(customer.account._id)
         await Account.deleteOne( {"_id": customer.account})
         res.status(200).json({message: 'customer deleted'})
     } catch(err) {
@@ -181,26 +176,26 @@ async function imgDelete(pictureUrl){
             accessKeyId: process.env.AWS_ID,
             secretAccessKey: process.env.AWS_SECRET_NAME,
             sessionToken: process.env.AWS_SESSION_TOKEN
-        })
-
-        const file = pictureUrl.split("/")
-        const key = file[file.length - 1]
-
-        const params = { Bucket: process.env.AWS_BUCKET_NAME, Key: key };
-        
-        S3.deleteObject(params, function(err) {
-            if (err) console.log(err);
         });
+        const fileurl = pictureUrl.split("/");
+        const key = fileurl[fileurl.length - 1];
+        const params = { Bucket: process.env.AWS_BUCKET_NAME, Key: key };
+
+        var s3function = S3.deleteObject(params).promise();
+        await awscommand.execute(s3function)
+            .catch(err => {
+                console.log(err)
+        })
     } catch(err){
-        console.log(err)
+        console.log(err);
     }
 }
 
 async function imgUpload(file){
-    let url = ''
+    let url;
     try{
-        let  myFile = file.originalname.split(".")
-        const fileType = myFile[myFile.length - 1]
+        let  filename = file.originalname.split(".");
+        const fileType = filename[filename.length - 1]
         const params = {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: `${uuidv4()}.${fileType}`,
@@ -210,7 +205,7 @@ async function imgUpload(file){
             accessKeyId: process.env.AWS_ID,
             secretAccessKey: process.env.AWS_SECRET_NAME,
             sessionToken: process.env.AWS_SESSION_TOKEN
-        })	
+        })
         var s3function = S3.upload(params).promise();
         
         await awscommand.execute(s3function)

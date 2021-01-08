@@ -7,6 +7,27 @@ const Bcrypt = require("bcryptjs");
 require('dotenv/config')
 const AWS = require('aws-sdk')
 const { v4: uuidv4 } = require('uuid')
+const createCircuitBreaker =  require('../circuitBreaker.js').createCircuitBreaker
+const axios = require("axios");
+
+const awscommand = createCircuitBreaker({
+    name: "AWS calls",
+    errorThreshold: 20,
+    timeout: 4000,
+    healthRequests: 5,
+    sleepTimeMS: 100,
+    maxRequests: 0,
+    errorHandler: (err) => false,
+    request: (S3function) => S3function,
+    fallback: (err, args) => {
+      console.log(err)
+      throw {
+        response: {
+          status: 503,
+        },
+      };
+    },
+});
 
 toasterCtrl.getToasters = async (req, res) => {
     try{ 
@@ -178,24 +199,26 @@ async function imgDelete(pictureUrl){
             sessionToken: process.env.AWS_SESSION_TOKEN
         })
 
-        const file = pictureUrl.split("/")
-        const key = file[file.length - 1]
+        const fileurl = pictureUrl.split("/")
+        const key = fileurl[fileurl.length - 1]
 
         const params = { Bucket: process.env.AWS_BUCKET_NAME, Key: key };
         
-        S3.deleteObject(params, function(err) {
-            if (err) console.log(err);
-        });
+        var s3function = S3.deleteObject(params).promise();
+        await awscommand.execute(s3function)
+            .catch(err => {
+                console.log(err)
+        })
     } catch(err){
-        console.log(err)
+        console.log(err);
     }
 }
 
 async function imgUpload(file){
     let url = ''
     try{
-        let  myFile = file.originalname.split(".")
-        const fileType = myFile[myFile.length - 1]
+        let  filename = file.originalname.split(".")
+        const fileType = filename[filename.length - 1]
         const params = {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: `${uuidv4()}.${fileType}`,
@@ -206,13 +229,19 @@ async function imgUpload(file){
             secretAccessKey: process.env.AWS_SECRET_NAME,
             sessionToken: process.env.AWS_SESSION_TOKEN
         })	
-        var s3upload = S3.upload(params).promise();	
-        await s3upload
-            .then(function(data) {	
+        var s3function = S3.upload(params).promise();
+        
+        await awscommand.execute(s3function)
+            .then(function(data) {
                 url = data.Location	
-            });	
+            })
+            .catch(err => {
+                console.log(err)
+                url = ''
+        })
     } catch(err) {	
         console.log(err)
+        url = ''
     }
     return url
 }
