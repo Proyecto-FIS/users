@@ -10,6 +10,7 @@ RUN npm install
 COPY index.js .
 COPY server.js .
 COPY db.js .
+COPY circuitBreaker.js .
 
 COPY routes/ routes
 COPY models/ models
