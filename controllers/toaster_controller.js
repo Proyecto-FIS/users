@@ -20,7 +20,7 @@ const awscommand = createCircuitBreaker({
     errorHandler: (err) => false,
     request: (S3function) => S3function,
     fallback: (err, args) => {
-      console.log(err)
+      console.log(Date() + "-" + err)
       throw {
         response: {
           status: 503,
@@ -207,10 +207,10 @@ async function imgDelete(pictureUrl){
         var s3function = S3.deleteObject(params).promise();
         await awscommand.execute(s3function)
             .catch(err => {
-                console.log(err)
+                console.log(Date() + "-" + err)
         })
     } catch(err){
-        console.log(err);
+        console.log(Date() + "-" + err);
     }
 }
 
@@ -236,11 +236,11 @@ async function imgUpload(file){
                 url = data.Location	
             })
             .catch(err => {
-                console.log(err)
+                console.log(Date() + "-" + err)
                 url = ''
         })
     } catch(err) {	
-        console.log(err)
+        console.log(Date() + "-" + err)
         url = ''
     }
     return url
