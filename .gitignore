@@ -1,7 +1,9 @@
 node_modules/
+coverage/
 .devcontainer/
 contacts.json
 customers.json
 toasters.json
 users.json
 README.md
+.env
