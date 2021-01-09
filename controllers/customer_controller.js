@@ -137,18 +137,13 @@ customerCtrl.updateCustomer = async (req, res) => {
        
         const account = await Account.findOne({"_id": customer.account});
 
-        var oldEmail = account.email;
-        if(email === oldEmail){
-            email = oldEmail;
-        }
-        var oldPassword = account.password;
-        if(!password){
-            password = oldPassword;
-        } else {
-            password = Bcrypt.hashSync(password, 10);
+        account.email = email;
+
+        if(password){
+            account.password = password;
         }
 
-        await Account.updateOne(account, { email, password }, { runValidators: true });
+        await account.save();
 
         res.status(200).json({message: "Customer updated"})
     } catch (err) {
