@@ -117,7 +117,7 @@ toasterCtrl.updateToaster = async (req, res) => {
             await imgDelete(toaster.pictureUrl)
         }
         else{
-            pictureUrl = customer.pictureUrl
+            pictureUrl = toaster.pictureUrl
         }
         var oldName = toaster.name;
         if(name === oldName){
