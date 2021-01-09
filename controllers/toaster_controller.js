@@ -57,7 +57,7 @@ toasterCtrl.getToaster = async (req, res) => {
 }
 
 toasterCtrl.createToaster = async (req, res) => {
-    const { username, password, email, name, description, phoneNumber, 
+    var { username, password, email, name, description, phoneNumber, 
         address, instagramUrl, facebookUrl, twitterUrl } = req.body;
     const isCustomer = false;
     
@@ -76,6 +76,23 @@ toasterCtrl.createToaster = async (req, res) => {
         }
 
         const account = await newAccount.save();
+
+        if(instagramUrl) {
+            if(!instagramUrl.startsWith("http://") || !instagramUrl.startsWith("https://")) {
+                instagramUrl = "https://" + instagramUrl
+            }
+        }
+        if(facebookUrl) {
+            if(!facebookUrl.startsWith("http://") || !facebookUrl.startsWith("https://")) {
+                facebookUrl = "https://" + facebookUrl
+            }
+        }
+        if(twitterUrl) {
+            if(!twitterUrl.startsWith("http://") || !twitterUrl.startsWith("https://")) {
+                twitterUrl = "https://" + twitterUrl
+            }
+        }
+
         const newToaster = new Toaster({ name, description, phoneNumber, pictureUrl, address, 
                                                 instagramUrl, facebookUrl, twitterUrl, account });
         try {
@@ -139,18 +156,34 @@ toasterCtrl.updateToaster = async (req, res) => {
         if(address === oldAddress){
             address = oldAddress;
         }
+
         var oldInstagramUrl = toaster.instagramUrl;
         if(instagramUrl === oldInstagramUrl){
             instagramUrl = oldInstagramUrl;
+        } else {
+            if(!instagramUrl.startsWith("http://") || !instagramUrl.startsWith("https://")) {
+            instagramUrl = "https://" + instagramUrl
+            }
         }
+
         var oldFacebookUrl = toaster.facebookUrl;
         if(facebookUrl === oldFacebookUrl){
             facebookUrl = oldFacebookUrl;
+        } else {
+            if(!facebookUrl.startsWith("http://") || !facebookUrl.startsWith("https://")) {
+                facebookUrl = "https://" + facebookUrl
+            }
         }
+        
         var oldTwitterUrl = toaster.twitterUrl;
         if(twitterUrl === oldTwitterUrl){
             twitterUrl = oldTwitterUrl;
+        } else {
+            if(!twitterUrl.startsWith("http://") || !twitterUrl.startsWith("https://")) {
+                twitterUrl = "https://" + twitterUrl
+            }
         }
+
 
         await Toaster.updateOne(toaster, { name, description, phoneNumber, pictureUrl, 
                                         address, instagramUrl, facebookUrl, twitterUrl },
