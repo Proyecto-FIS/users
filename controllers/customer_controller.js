@@ -10,6 +10,7 @@ const AWS = require('aws-sdk')
 const { v4: uuidv4 } = require('uuid')
 const createCircuitBreaker =  require('../circuitBreaker.js').createCircuitBreaker
 const axios = require("axios");
+const stripe = require('stripe')(process.env.STRIPE_PUBLIC_KEY);
 
 const awscommand = createCircuitBreaker({
     name: "AWS calls",
@@ -73,17 +74,25 @@ customerCtrl.createCustomer = async (req, res) => {
     } else {
         pictureUrl = ''
     }
+
     const newAccount = new Account({ username, password, email, isCustomer });
-    try { 
+    try {
         accountExists = await Account.findOne({username});
         
         if(accountExists){
             return res.status(400).json( { errors:[{msg:"Account already exists"}] });
         }
 
+        // Guardo en customer el objeto que devuelve stripe
+        const stripe_customer = await stripe.customers.create({
+            name: account.username,
+            email: account.email
+        });
+        const stripe_id = stripe_customer.id
+
         const account = await newAccount.save();
-        const newCustomer = new Customer({ pictureUrl, address, account });
-        
+        const newCustomer = new Customer({pictureUrl, address, stripe_id, account });
+
         try {
             await newCustomer.save();
             jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:parseInt(process.env.TOKEN_EXPIRATION_TIME) || 3600000}, (err, token) => {

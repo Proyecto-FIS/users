@@ -13,6 +13,10 @@ const customerSchema = new mongoose.Schema({
     address: {
         type: String
     },
+    stripe_id: {
+        type: String,
+        required: true
+    },
     account: {
         type: mongoose.Schema.Types.ObjectId, ref: "Account"
     }},
