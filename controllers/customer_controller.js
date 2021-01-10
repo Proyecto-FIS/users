@@ -30,7 +30,7 @@ const awscommand = createCircuitBreaker({
       };
     },
 });
-  
+
 const removeHistoryCommand = createCircuitBreaker({
     name: "Coffaine Sales MS Calls",
     errorThreshold: 20,
@@ -82,7 +82,7 @@ customerCtrl.createCustomer = async (req, res) => {
         if(accountExists){
             return res.status(400).json( { errors:[{msg:"Account already exists"}] });
         }
-
+        const account = await newAccount.save();
         // Guardo en customer el objeto que devuelve stripe
         const stripe_customer = await stripe.customers.create({
             name: account.username,
@@ -90,7 +90,6 @@ customerCtrl.createCustomer = async (req, res) => {
         });
         const stripe_id = stripe_customer.id
 
-        const account = await newAccount.save();
         const newCustomer = new Customer({pictureUrl, address, stripe_id, account });
 
         try {
@@ -180,7 +179,7 @@ async function imgDelete(pictureUrl){
         const S3 = new AWS.S3({
             accessKeyId: process.env.AWS_ID,
             secretAccessKey: process.env.AWS_SECRET_NAME,
-            sessionToken: process.env.AWS_SESSION_TOKEN
+            region: process.env.REGION
         });
         const fileurl = pictureUrl.split("/");
         const key = fileurl[fileurl.length - 1];
@@ -204,12 +203,13 @@ async function imgUpload(file){
         const params = {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: `${uuidv4()}.${fileType}`,
-            Body: file.buffer
+            Body: file.buffer,
+            ACL: "public-read-write"
         }
         const S3 = new AWS.S3({
             accessKeyId: process.env.AWS_ID,
             secretAccessKey: process.env.AWS_SECRET_NAME,
-            sessionToken: process.env.AWS_SESSION_TOKEN
+            region: process.env.REGION
         })
         var s3function = S3.upload(params).promise();
         

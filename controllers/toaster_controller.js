@@ -224,7 +224,7 @@ async function imgDelete(pictureUrl){
         const S3 = new AWS.S3({
             accessKeyId: process.env.AWS_ID,
             secretAccessKey: process.env.AWS_SECRET_NAME,
-            sessionToken: process.env.AWS_SESSION_TOKEN
+            region: process.env.REGION
         })
 
         const fileurl = pictureUrl.split("/")
@@ -250,12 +250,13 @@ async function imgUpload(file){
         const params = {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: `${uuidv4()}.${fileType}`,
-            Body: file.buffer
+            Body: file.buffer,
+            ACL: "public-read-write"
         }
         const S3 = new AWS.S3({
             accessKeyId: process.env.AWS_ID,
             secretAccessKey: process.env.AWS_SECRET_NAME,
-            sessionToken: process.env.AWS_SESSION_TOKEN
+            region: process.env.REGION
         })	
         var s3function = S3.upload(params).promise();
         
