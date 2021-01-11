@@ -5,10 +5,53 @@ const cfg = require('config');
 const Customer = require('../models/customers');
 const Account = require('../models/accounts');
 const Bcrypt = require("bcryptjs");
+require('dotenv/config')
+const AWS = require('aws-sdk')
+const { v4: uuidv4 } = require('uuid')
+const createCircuitBreaker =  require('../circuitBreaker.js').createCircuitBreaker
+const axios = require("axios");
+const stripe = require('stripe')(process.env.STRIPE_PUBLIC_KEY);
 
+const awscommand = createCircuitBreaker({
+    name: "AWS calls",
+    errorThreshold: 20,
+    timeout: 4000,
+    healthRequests: 5,
+    sleepTimeMS: 100,
+    maxRequests: 0,
+    errorHandler: (err) => false,
+    request: (S3function) => S3function,
+    fallback: (err, args) => {
+      console.log(Date() + "-"  + err)
+      throw {
+        response: {
+          status: 503,
+        },
+      };
+    },
+});
+
+const removeHistoryCommand = createCircuitBreaker({
+    name: "Coffaine Sales MS Calls",
+    errorThreshold: 20,
+    timeout: 8000,
+    healthRequests: 5,
+    sleepTimeMS: 100,
+    maxRequests: 0,
+    errorHandler: (err) => false,
+    request: (id) => axios.get("https://jsonplaceholder.typicode.com/todos/1"),
+    fallback: (err, args) => {
+      if (err && err.isAxiosError) throw err;
+      throw {
+        response: {
+          status: 503,
+        },
+      };
+    },
+  });
 
 customerCtrl.getCustomer = async (req, res) => {
-    try { 
+    try{ 
         const customer = await Customer.findOne( {account: req.params.accountId} );
         
         Account.populate(customer, {path: "account"}, function(err, customer){
@@ -23,8 +66,15 @@ customerCtrl.getCustomer = async (req, res) => {
 }
 
 customerCtrl.createCustomer = async (req, res) => {
-    const { username, password, email, pictureUrl, address } = req.body;
+    const { username, password, email, address } = req.body;
     const isCustomer = true;
+
+    if(req.file){
+        pictureUrl = await imgUpload(req.file)
+    } else {
+        pictureUrl = ''
+    }
+
     const newAccount = new Account({ username, password, email, isCustomer });
     try {
         accountExists = await Account.findOne({username});
@@ -32,14 +82,19 @@ customerCtrl.createCustomer = async (req, res) => {
         if(accountExists){
             return res.status(400).json( { errors:[{msg:"Account already exists"}] });
         }
-
         const account = await newAccount.save();
-        const newCustomer = new Customer({ pictureUrl, address, account });
+        // Guardo en customer el objeto que devuelve stripe
+        const stripe_customer = await stripe.customers.create({
+            name: account.username,
+            email: account.email
+        });
+        const stripe_id = stripe_customer.id
+
+        const newCustomer = new Customer({pictureUrl, address, stripe_id, account });
+
         try {
             await newCustomer.save();
-
-            //TODO cambiar el expires a 3600 en producción
-            jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
+            jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:parseInt(process.env.TOKEN_EXPIRATION_TIME) || 3600000}, (err, token) => {
                 if(err) {
                     throw err;
                 } else {
@@ -66,10 +121,16 @@ customerCtrl.createCustomer = async (req, res) => {
 }
 
 customerCtrl.updateCustomer = async (req, res) => {
-    var { email, pictureUrl, address, password } = req.body
-
+    var { email, address, password } = req.body
     try {
         const customer = await Customer.findOne( {account: req.params.accountId} );
+        if(req.file){
+            pictureUrl = await imgUpload(req.file)
+            await imgDelete(customer.pictureUrl)
+        }
+        else{
+            pictureUrl = customer.pictureUrl
+        }
 
         var oldPictureUrl = customer.pictureUrl;
         if(pictureUrl === oldPictureUrl){
@@ -84,18 +145,13 @@ customerCtrl.updateCustomer = async (req, res) => {
        
         const account = await Account.findOne({"_id": customer.account});
 
-        var oldEmail = account.email;
-        if(email === oldEmail){
-            email = oldEmail;
-        }
-        var oldPassword = account.password;
-        if(!password){
-            password = oldPassword;
-        } else {
-            password = Bcrypt.hashSync(password, 10);
+        account.email = email;
+
+        if(password){
+            account.password = password;
         }
 
-        await Account.updateOne(account, { email, password }, { runValidators: true });
+        await account.save();
 
         res.status(200).json({message: "Customer updated"})
     } catch (err) {
@@ -106,8 +162,11 @@ customerCtrl.updateCustomer = async (req, res) => {
 
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
-        const customer = await Customer.findOneAndDelete(req.params.id)
+        const customer = await Customer.findOne( {account: req.params.accountId} );
+        await imgDelete(customer.pictureUrl)
+        //removeHistoryCommand.execute(customer.account._id)
         await Account.deleteOne( {"_id": customer.account})
+        await Customer.deleteOne(customer)
         res.status(200).json({message: 'customer deleted'})
     } catch(err) {
         console.log(Date() + "-" + err)
@@ -115,5 +174,58 @@ customerCtrl.deleteCustomer = async (req, res) => {
     }
 }
 
+async function imgDelete(pictureUrl){
+    try{
+        const S3 = new AWS.S3({
+            accessKeyId: process.env.AWS_ID,
+            secretAccessKey: process.env.AWS_SECRET_NAME,
+            region: process.env.REGION
+        });
+        const fileurl = pictureUrl.split("/");
+        const key = fileurl[fileurl.length - 1];
+        const params = { Bucket: process.env.AWS_BUCKET_NAME, Key: key };
+
+        var s3function = S3.deleteObject(params).promise();
+        await awscommand.execute(s3function)
+            .catch(err => {
+                console.log(Date() + "-" + err)
+        })
+    } catch(err){
+        console.log(Date() + "-" + err);
+    }
+}
+
+async function imgUpload(file){
+    let url;
+    try{
+        let  filename = file.originalname.split(".");
+        const fileType = filename[filename.length - 1]
+        const params = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: `${uuidv4()}.${fileType}`,
+            Body: file.buffer,
+            ACL: "public-read-write"
+        }
+        const S3 = new AWS.S3({
+            accessKeyId: process.env.AWS_ID,
+            secretAccessKey: process.env.AWS_SECRET_NAME,
+            region: process.env.REGION
+        })
+        var s3function = S3.upload(params).promise();
+        
+        await awscommand.execute(s3function)
+            .then(function(data) {
+                url = data.Location	
+            })
+            .catch(err => {
+                console.log(Date() + "-" + err)
+                url = ''
+        })
+    } catch(err) {	
+        console.log(Date() + "-" + err)
+        url = ''
+    }
+    return url
+}
 
 module.exports = customerCtrl

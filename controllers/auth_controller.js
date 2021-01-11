@@ -28,8 +28,7 @@ authCtrl.login = async (req, res) => {
             return res.status(400).json( { errors:[{msg:"Invalid login"}] });
         }
 
-        //TODO cambiar el expires a 3600 en producción
-        jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:3600000}, (err, token) => {
+        jwt.sign({id: account.id}, cfg.get("jwttoken"), {expiresIn:parseInt(process.env.TOKEN_EXPIRATION_TIME) || 3600000}, (err, token) => {
             if(err) {
                 throw err;
             } else {

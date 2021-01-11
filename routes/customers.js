@@ -1,5 +1,7 @@
 const { Router } = require('express');
 const router = Router();
+const multer = require("multer")
+const upload = multer({ dest: "" })
 
 const { getCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer } = require('../controllers/customer_controller');
 
@@ -18,8 +20,7 @@ const { getCustomers, getCustomer, createCustomer, updateCustomer, deleteCustome
  * @returns {object} 201 - customer created
  * @returns {Error}  500 - Unexpected error creating a customer
  */
-router.route('/').post(createCustomer);
-
+router.route('/').post(upload.single("picture"), createCustomer);
 
 /**
  * @route GET /customers/{accountId}
@@ -31,23 +32,22 @@ router.route('/').post(createCustomer);
 router.route('/:accountId').get(getCustomer);
 
 /**
- * @route PUT /customers/{id}
+ * @route PUT /customers/{accountId}
  * @group customers - customers operations
- * @param {string} id.query.required - customer id required
+ * @param {string} id.query.required - Account id required
  * @returns {object} 200 - Updated customer
  * @returns {Error}  500 - Unexpected error
  */
-router.route('/:accountId').put(updateCustomer);
-
+router.route('/:accountId').put(upload.single("picture"), updateCustomer);
 
 /**
- * @route DELETE /customers/{id}
+ * @route DELETE /customers/{accountId}
  * @group customers - customers operations
- * @param {string} id.query.required - customer id required
+ * @param {string} id.query.required - Account id required
  * @returns {object} 200 - Deleted customer
  * @returns {Error}  404 - Unexpected error
  */
-router.route('/:id').delete(deleteCustomer);
+router.route('/:accountId').delete(deleteCustomer);
 
 
 module.exports = router;

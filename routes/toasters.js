@@ -1,5 +1,7 @@
 const { Router } = require('express')
 const router = Router()
+const multer = require("multer")
+const upload = multer({ dest: "" })
 
 const { getToaster, getToasters, createToaster, updateToaster, deleteToaster } = require('../controllers/toaster_controller')
 
@@ -30,7 +32,7 @@ router.route('/').get(getToasters)
  * @returns {object} 201 - Toaster created
  * @returns {Error}  500 - Unexpected error creating a toaster
  */
-router.route('/').post(createToaster)
+router.route('/').post(upload.single("picture"), createToaster)
 
 
 /**
@@ -49,7 +51,7 @@ router.route('/:accountId').get(getToaster)
  * @returns {object} 200 - Updated toaster
  * @returns {Error}  404 - Unexpected error
  */
-router.route('/:accountId').put(updateToaster)
+router.route('/:accountId').put(upload.single("picture"), updateToaster)
 
 /**
  * @route DELETE /toasters/{id}
