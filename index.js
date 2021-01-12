@@ -1,9 +1,3 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-const router = express.Router();
-const circuitBreaker = require("./circuitBreaker");
-const dashboard = require('hystrix-dashboard')
-
 const app = require('./server.js');
 const dbConnect = require('./db.js');
 
@@ -19,21 +13,6 @@ dbConnect().then(
         console.log("Connection error: "+err);
     }
 )
-
-app.use(router);
-app.use(BASE_API_PATH + '/customers', customers);
-app.use(BASE_API_PATH + '/toasters', toasters);
-app.use(BASE_API_PATH + '/auth', auth);
-
-app.use(
-    dashboard({
-        idleTimeout: 4000,
-        interval: 2000,
-        proxy: true,
-    })
-);
-circuitBreaker.initHystrixStream(router);
-
 
 // Swagger documentation //
 const expressSwagger = require('express-swagger-generator')(app);
