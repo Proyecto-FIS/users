@@ -10,7 +10,7 @@ const AWS = require('aws-sdk')
 const { v4: uuidv4 } = require('uuid')
 const createCircuitBreaker =  require('../circuitBreaker.js').createCircuitBreaker
 const axios = require("axios");
-const stripe = require('stripe')(process.env.STRIPE_PUBLIC_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const awscommand = createCircuitBreaker({
     name: "AWS calls",
