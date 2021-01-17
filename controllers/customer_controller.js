@@ -39,7 +39,7 @@ const removeHistoryCommand = createCircuitBreaker({
     sleepTimeMS: 100,
     maxRequests: 0,
     errorHandler: (err) => false,
-    request: (token) => axios.delete(`${processs.env.SALES_MS}history?userToken=${token}`),
+    request: (token) => axios.delete(`${process.env.SALES_MS}history?userToken=${token}`),
     fallback: (err, args) => {
       if (err && err.isAxiosError) throw err;
       throw {
@@ -163,12 +163,24 @@ customerCtrl.deleteCustomer = async (req, res) => {
     try {
         const token = req.body.userToken || req.query.userToken;
         const customer = await Customer.findOne( {account: req.params.accountId} );
-        await imgDelete(customer.pictureUrl);
-        await removeHistoryCommand.execute(token);
+        if(!customer){
+            res.status(404).json({message: 'customer not found'})
+        } else {
+            if(customer.pictureUrl){
+                await imgDelete(customer.pictureUrl);
+            }
+            await removeHistoryCommand.execute(token).catch((err) => {
+                if (err.response.status === 401) {
+                    res.status(401).json({ reason: "Authentication failed" });
+                } else {
+                    res.status(500).json(err); 
+                }
+            });
 
-        await Account.deleteOne( {"_id": customer.account});
-        await Customer.deleteOne(customer);
-        res.status(200).json({message: 'customer deleted'});
+            await Account.deleteOne( {"_id": customer.account});
+            await Customer.deleteOne(customer);
+            res.status(200).json({message: 'customer deleted'});
+        }
     } catch(err) {
         console.log(Date() + "-" + err)
         res.status(500).json(err)
