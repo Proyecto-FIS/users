@@ -39,7 +39,7 @@ const removeHistoryCommand = createCircuitBreaker({
     sleepTimeMS: 100,
     maxRequests: 0,
     errorHandler: (err) => false,
-    request: (id) => axios.get("https://jsonplaceholder.typicode.com/todos/1"),
+    request: (token) => axios.delete(`${processs.env.SALES_MS}history?userToken=${token}`),
     fallback: (err, args) => {
       if (err && err.isAxiosError) throw err;
       throw {
@@ -108,7 +108,6 @@ customerCtrl.createCustomer = async (req, res) => {
             });
 
         } catch (err) {
-            // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account})
             console.log(Date() + "-" + err)
             res.status(500).json(err);
@@ -162,12 +161,14 @@ customerCtrl.updateCustomer = async (req, res) => {
 
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
+        const token = req.body.userToken || req.query.userToken;
         const customer = await Customer.findOne( {account: req.params.accountId} );
-        await imgDelete(customer.pictureUrl)
-        //removeHistoryCommand.execute(customer.account._id)
-        await Account.deleteOne( {"_id": customer.account})
-        await Customer.deleteOne(customer)
-        res.status(200).json({message: 'customer deleted'})
+        await imgDelete(customer.pictureUrl);
+        await removeHistoryCommand.execute(token);
+
+        await Account.deleteOne( {"_id": customer.account});
+        await Customer.deleteOne(customer);
+        res.status(200).json({message: 'customer deleted'});
     } catch(err) {
         console.log(Date() + "-" + err)
         res.status(500).json(err)
