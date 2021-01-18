@@ -70,7 +70,7 @@ customerCtrl.createCustomer = async (req, res) => {
     const isCustomer = true;
 
     if(req.file){
-      //  pictureUrl = await imgUpload(req.file)
+      pictureUrl = await imgUpload(req.file)
       console.log(request.file)
     } else {
         pictureUrl = ''
