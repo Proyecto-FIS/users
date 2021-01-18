@@ -71,7 +71,6 @@ customerCtrl.createCustomer = async (req, res) => {
 
     if(req.file){
       pictureUrl = await imgUpload(req.file)
-      console.log(request.file)
     } else {
         pictureUrl = ''
     }
