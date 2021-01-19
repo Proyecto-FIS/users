@@ -32,7 +32,7 @@ const awscommand = createCircuitBreaker({
 });
 
 const removeHistoryCommand = createCircuitBreaker({
-    name: "Coffaine Sales MS Calls",
+    name: "Sales MS Delete History Calls",
     errorThreshold: 20,
     timeout: 8000,
     healthRequests: 5,
@@ -40,6 +40,25 @@ const removeHistoryCommand = createCircuitBreaker({
     maxRequests: 0,
     errorHandler: (err) => false,
     request: (token) => axios.delete(`${process.env.SALES_MS}history?userToken=${token}`),
+    fallback: (err, args) => {
+      if (err && err.isAxiosError) throw err;
+      throw {
+        response: {
+          status: 503,
+        },
+      };
+    },
+  });        
+  
+  const removeSubscriptionCommand = createCircuitBreaker({
+    name: "Sales MS Delete Subscription Calls",
+    errorThreshold: 20,
+    timeout: 8000,
+    healthRequests: 5,
+    sleepTimeMS: 100,
+    maxRequests: 0,
+    errorHandler: (err) => false,
+    request: (token) => axios.delete(`${process.env.SALES_MS}all-subscription?userToken=${token}`),
     fallback: (err, args) => {
       if (err && err.isAxiosError) throw err;
       throw {
@@ -170,6 +189,14 @@ customerCtrl.deleteCustomer = async (req, res) => {
                 await imgDelete(customer.pictureUrl);
             }
             await removeHistoryCommand.execute(token).catch((err) => {
+                if (err.response.status === 401) {
+                    res.status(401).json({ reason: "Authentication failed" });
+                } else {
+                    res.status(500).json(err); 
+                }
+            });
+
+            await removeSubscriptionCommand.execute(token).catch((err) => {
                 if (err.response.status === 401) {
                     res.status(401).json({ reason: "Authentication failed" });
                 } else {
