@@ -32,14 +32,33 @@ const awscommand = createCircuitBreaker({
 });
 
 const removeHistoryCommand = createCircuitBreaker({
-    name: "Coffaine Sales MS Calls",
+    name: "Sales MS Delete History Calls",
     errorThreshold: 20,
     timeout: 8000,
     healthRequests: 5,
     sleepTimeMS: 100,
     maxRequests: 0,
     errorHandler: (err) => false,
-    request: (id) => axios.get("https://jsonplaceholder.typicode.com/todos/1"),
+    request: (token) => axios.delete(`${process.env.SALES_MS}history?userToken=${token}`),
+    fallback: (err, args) => {
+      if (err && err.isAxiosError) throw err;
+      throw {
+        response: {
+          status: 503,
+        },
+      };
+    },
+  });        
+  
+  const removeSubscriptionCommand = createCircuitBreaker({
+    name: "Sales MS Delete Subscription Calls",
+    errorThreshold: 20,
+    timeout: 8000,
+    healthRequests: 5,
+    sleepTimeMS: 100,
+    maxRequests: 0,
+    errorHandler: (err) => false,
+    request: (token) => axios.delete(`${process.env.SALES_MS}all-subscription?userToken=${token}`),
     fallback: (err, args) => {
       if (err && err.isAxiosError) throw err;
       throw {
@@ -108,7 +127,6 @@ customerCtrl.createCustomer = async (req, res) => {
             });
 
         } catch (err) {
-            // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account})
             console.log(Date() + "-" + err)
             res.status(500).json(err);
@@ -162,12 +180,34 @@ customerCtrl.updateCustomer = async (req, res) => {
 
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
+        const token = req.body.userToken || req.query.userToken;
         const customer = await Customer.findOne( {account: req.params.accountId} );
-        await imgDelete(customer.pictureUrl)
-        //removeHistoryCommand.execute(customer.account._id)
-        await Account.deleteOne( {"_id": customer.account})
-        await Customer.deleteOne(customer)
-        res.status(200).json({message: 'customer deleted'})
+        if(!customer){
+            res.status(404).json({message: 'customer not found'})
+        } else {
+            if(customer.pictureUrl){
+                await imgDelete(customer.pictureUrl);
+            }
+            await removeHistoryCommand.execute(token).catch((err) => {
+                if (err.response.status === 401) {
+                    res.status(401).json({ reason: "Authentication failed" });
+                } else {
+                    res.status(500).json(err); 
+                }
+            });
+
+            await removeSubscriptionCommand.execute(token).catch((err) => {
+                if (err.response.status === 401) {
+                    res.status(401).json({ reason: "Authentication failed" });
+                } else {
+                    res.status(500).json(err); 
+                }
+            });
+
+            await Account.deleteOne( {"_id": customer.account});
+            await Customer.deleteOne(customer);
+            res.status(200).json({message: 'customer deleted'});
+        }
     } catch(err) {
         console.log(Date() + "-" + err)
         res.status(500).json(err)
