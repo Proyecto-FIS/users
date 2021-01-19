@@ -189,19 +189,13 @@ customerCtrl.deleteCustomer = async (req, res) => {
                 await imgDelete(customer.pictureUrl);
             }
             await removeHistoryCommand.execute(token).catch((err) => {
-                if (err.response.status === 401) {
-                    res.status(401).json({ reason: "Authentication failed" });
-                } else {
-                    res.status(500).json(err); 
-                }
+                console.log(err)
+                res.status(500).json(err); 
             });
 
             await removeSubscriptionCommand.execute(token).catch((err) => {
-                if (err.response.status === 401) {
-                    res.status(401).json({ reason: "Authentication failed" });
-                } else {
-                    res.status(500).json(err); 
-                }
+                console.log(err)
+                res.status(500).json(err); 
             });
 
             await Account.deleteOne( {"_id": customer.account});
