@@ -44,6 +44,9 @@ Toaster:
 Environment variables:
 - TOKEN_EXPIRATION_TIME: time in seconds until user token expires
 - STRIPE_PUBLIC_KEY: Stripe public key
+- STRIPE_SECRET_KEY: Stripe secret key
+- SALES_MS: sales microservice url
+- MONGO_URL = database connection url
 - REGION: AWS S3 server region
 - AWS_BUCKET_NAME: Name of the AWS bucket made to save images
 - AWS_ID: Amazon web services credentials
