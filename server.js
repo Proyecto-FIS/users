@@ -1,37 +1,77 @@
-// Express
 var express = require('express');
 var bodyParser = require('body-parser');
-const toasters = require('./routes/toasters');
-const customers = require('./routes/customers');
-const auth = require('./routes/auth');
-var BASE_API_PATH = "/api/v1";
-const router = express.Router();
-const circuitBreaker = require("./circuitBreaker");
-const dashboard = require('hystrix-dashboard')
+
+const DatabaseConnection = require("./db");
+const AuthRoute = require('./routes/Auth');
+const CustomerRoute = require("./routes/Customer");
+const ToasterRoute = require("./routes/Toaster");
+const CircuitBreaker = require("./circuitBreaker");
+
 console.log("Starting API server...");
+class App {
+    constructor() {
+        this.app = express();
+        this.router = express.Router();
+        this.server = null;
+        this.port = process.env.PORT || 3000;
+        this.db = new DatabaseConnection();
+        this.app.use(express.urlencoded({ extended: false }));
+        this.app.use(bodyParser.json());
+        this.app.use(this.router);
 
-var app = express();
-app.use(bodyParser.json());
+        // Route registration
+        const BASE_API_PATH = "/api/v1";
+        this.CustomerRoute = new CustomerRoute(BASE_API_PATH, this.router);
+        this.ToasterRoute = new ToasterRoute(BASE_API_PATH, this.router);
+        this.AuthRoute = new AuthRoute(BASE_API_PATH, this.router);
 
-//Routes
-app.get("/", (req, res) => {
-    res.send("<html><body><h1> User management index page. </h1></body> </html>");
-});
+        CircuitBreaker.initHystrixStream(this.app);
+        CircuitBreaker.initHystrixDashboard(this.app);
 
-app.use(BASE_API_PATH + '/customers', customers);
-app.use(BASE_API_PATH + '/toasters', toasters);
-app.use(BASE_API_PATH + '/auth', auth);
+        this.app.use(App.errorHandler);
+    }
 
-app.use(router);
+    static errorHandler(err, req, res, next) {
+        res.status(500).json({ msg: err });
+    }
 
-app.use(
-    dashboard({
-        idleTimeout: 4000,
-        interval: 2000,
-        proxy: true,
-    })
-);
-circuitBreaker.initHystrixStream(router);
+    run() {
+        return new Promise((resolve, reject) => {
 
+            process.on("SIGINT", () => {
+                console.log("[SERVER] Shut down requested by user");
+                this.stop().then(() => { });
+            });
 
-module.exports = app;
+            this.db.setup()
+                .then(() => {
+                    this.server = this.app.listen(this.port, () => {
+                        console.log(`[SERVER] Running at port ${this.port}`);
+                        resolve();
+                    });
+                })
+                .catch(reject);
+        });
+    }
+
+    stop() {
+        return new Promise((resolve, reject) => {
+
+            if (this.server == null) {
+                reject();
+                return;
+            }
+
+            this.server.close(err => {
+                if(err) {
+                    reject(err);
+                } else {
+                    console.log("[SERVER] Closed successfully");
+                    this.db.close().then(resolve).catch(reject);
+                }
+            });
+        });
+    }
+}
+
+module.exports = App;
