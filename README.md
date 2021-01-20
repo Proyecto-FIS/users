@@ -53,6 +53,6 @@ Environment variables:
 - AWS_SECRET_NAME: Amazon web services credentials
 
 ## API URL
-[Coffaine Products](https://coffaine-users.herokuapp.com/)
+[Coffaine USERS](https://coffaine-users.herokuapp.com/)
 ## API Documentation
 [Swagger docs](https://coffaine-users.herokuapp.com/api-docs)
