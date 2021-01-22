@@ -117,12 +117,12 @@ customerCtrl.createCustomer = async (req, res) => {
         try {
             const url = 'https://placekitten.com/g/'+ Math.floor(Math.random() * 450 + 450) + '/' + Math.floor(Math.random() * 450 + 450);
             await getKittenCommand.execute(url).then(async (response) => {
-                     var file = {
-                         originalname: "newImage.png",
-                         buffer: response.data
-                     }
-                     pictureUrl = await imgUpload(file)
-                });
+                var file = {
+                    originalname: "newImage.png",
+                    buffer: response.data
+                }
+                pictureUrl = await imgUpload(file)
+            });
         } catch(err) {
             pictureUrl = ''
         }
