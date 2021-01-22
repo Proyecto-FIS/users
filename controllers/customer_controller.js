@@ -50,7 +50,7 @@ const removeHistoryCommand = createCircuitBreaker({
     },
   });        
   
-  const removeSubscriptionCommand = createCircuitBreaker({
+const removeSubscriptionCommand = createCircuitBreaker({
     name: "Sales MS Delete Subscription Calls",
     errorThreshold: 20,
     timeout: 8000,
@@ -59,6 +59,29 @@ const removeHistoryCommand = createCircuitBreaker({
     maxRequests: 0,
     errorHandler: (err) => false,
     request: (token) => axios.delete(`${process.env.SALES_MS}all-subscription?userToken=${token}`),
+    fallback: (err, args) => {
+      if (err && err.isAxiosError) throw err;
+      throw {
+        response: {
+          status: 503,
+        },
+      };
+    },
+  });
+
+const getKittenCommand = createCircuitBreaker({
+    name: "placekitten Calls",
+    errorThreshold: 20,
+    timeout: 8000,
+    healthRequests: 5,
+    sleepTimeMS: 100,
+    maxRequests: 0,
+    errorHandler: (err) => false,
+    request: (url) => axios.request({
+        url: url,
+        method: 'GET',
+        responseType: 'arraybuffer'
+    }),
     fallback: (err, args) => {
       if (err && err.isAxiosError) throw err;
       throw {
@@ -91,7 +114,18 @@ customerCtrl.createCustomer = async (req, res) => {
     if(req.file){
       pictureUrl = await imgUpload(req.file)
     } else {
-        pictureUrl = ''
+        try {
+            const url = 'https://placekitten.com/g/'+ Math.floor(Math.random() * 450 + 450) + '/' + Math.floor(Math.random() * 450 + 450);
+            await getKittenCommand.execute(url).then(async (response) => {
+                var file = {
+                    originalname: "newImage.png",
+                    buffer: response.data
+                }
+                pictureUrl = await imgUpload(file)
+            });
+        } catch(err) {
+            pictureUrl = ''
+        }
     }
 
     const newAccount = new Account({ username, password, email, isCustomer });
