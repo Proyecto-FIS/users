@@ -11,7 +11,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "jest ./test -i",
+    "test": "jest ./test -i --silent",
     "coverage": "npm test -- --coverage"
   },
   "author": "Arturo Pérez y Jacinto Ruiz",
