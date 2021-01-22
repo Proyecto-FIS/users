@@ -29,6 +29,29 @@ const awscommand = createCircuitBreaker({
     },
 });
 
+const getRandomCoffeeCommand = createCircuitBreaker({
+    name: "coffee.alexflipnote Calls",
+    errorThreshold: 20,
+    timeout: 8000,
+    healthRequests: 5,
+    sleepTimeMS: 100,
+    maxRequests: 0,
+    errorHandler: (err) => false,
+    request: (url) => axios.request({
+        url: url,
+        method: 'GET',
+        responseType: 'arraybuffer'
+    }),
+    fallback: (err, args) => {
+      if (err && err.isAxiosError) throw err;
+      throw {
+        response: {
+          status: 503,
+        },
+      };
+    },
+  });
+
 toasterCtrl.getToasters = async (req, res) => {
     try{ 
         const toasters =  await Toaster.find()
@@ -64,7 +87,18 @@ toasterCtrl.createToaster = async (req, res) => {
     if(req.file){
         pictureUrl = await imgUpload(req.file)
     } else {
-        pictureUrl = ''
+        try {
+            const url = 'https://coffee.alexflipnote.dev/random';
+            await getRandomCoffeeCommand.execute(url).then(async (response) => {
+                var file = {
+                    originalname: "newCoffee.png",
+                    buffer: response.data
+                }
+                pictureUrl = await imgUpload(file)
+            });
+        } catch(err) {
+            pictureUrl = ''
+        }
     }
 
     const newAccount = new Account({ username, password, email, isCustomer });

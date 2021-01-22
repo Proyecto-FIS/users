@@ -68,6 +68,29 @@ const removeSubscriptionCommand = createCircuitBreaker({
     },
   });
 
+const getKittenCommand = createCircuitBreaker({
+    name: "placekitten Calls",
+    errorThreshold: 20,
+    timeout: 8000,
+    healthRequests: 5,
+    sleepTimeMS: 100,
+    maxRequests: 0,
+    errorHandler: (err) => false,
+    request: (url) => axios.request({
+        url: url,
+        method: 'GET',
+        responseType: 'arraybuffer'
+    }),
+    fallback: (err, args) => {
+      if (err && err.isAxiosError) throw err;
+      throw {
+        response: {
+          status: 503,
+        },
+      };
+    },
+  });
+
 customerCtrl.getCustomer = async (req, res) => {
     try{ 
         const customer = await Customer.findOne( {account: req.params.accountId} );
@@ -90,7 +113,18 @@ customerCtrl.createCustomer = async (req, res) => {
     if(req.file){
       pictureUrl = await imgUpload(req.file)
     } else {
-        pictureUrl = ''
+        try {
+            const url = 'https://placekitten.com/g/'+ Math.floor(Math.random() * 450 + 450) + '/' + Math.floor(Math.random() * 450 + 450);
+            await getKittenCommand.execute(url).then(async (response) => {
+                var file = {
+                    originalname: "newImage.png",
+                    buffer: response.data
+                }
+                pictureUrl = await imgUpload(file)
+            });
+        } catch(err) {
+            pictureUrl = ''
+        }
     }
 
     const newAccount = new Account({ username, password, email, isCustomer });
@@ -180,6 +214,7 @@ customerCtrl.updateCustomer = async (req, res) => {
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
         const token = req.body.userToken || req.query.userToken;
+        
         const customer = await Customer.findOne( {account: req.params.accountId} );
         if(!customer){
             res.status(404).json({message: 'customer not found'})
@@ -187,8 +222,16 @@ customerCtrl.deleteCustomer = async (req, res) => {
             if(customer.pictureUrl){
                 await imgDelete(customer.pictureUrl);
             }
-            await removeHistoryCommand.execute(token)
-            await removeSubscriptionCommand.execute(token)
+            await removeHistoryCommand.execute(token).catch((err) => {
+                console.log(err)
+                res.status(500).json(err); 
+            });
+
+            await removeSubscriptionCommand.execute(token).catch((err) => {
+                console.log(err)
+                res.status(500).json(err); 
+            });
+
             await Account.deleteOne( {"_id": customer.account});
             await Customer.deleteOne(customer);
             res.status(200).json({message: 'customer deleted'});
