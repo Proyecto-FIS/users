@@ -111,7 +111,6 @@ toasterCtrl.createToaster = async (req, res) => {
                 }
             });
         } catch (err) {
-            // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account});
             console.log(Date() + "-" + err);
             res.status(500).json(err);
