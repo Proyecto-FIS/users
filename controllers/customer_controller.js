@@ -181,10 +181,6 @@ customerCtrl.updateCustomer = async (req, res) => {
 customerCtrl.deleteCustomer = async (req, res) => {
     try {
         const token = req.body.userToken || req.query.userToken;
-        console.log('##########')
-        console.log(token)
-        console.log(req.body)
-        console.log(req)
         
         const customer = await Customer.findOne( {account: req.params.accountId} );
         if(!customer){
