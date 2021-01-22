@@ -30,7 +30,7 @@ const awscommand = createCircuitBreaker({
 });
 
 const getRandomCoffeeCommand = createCircuitBreaker({
-    name: "placekitten Calls",
+    name: "coffee.alexflipnote Calls",
     errorThreshold: 20,
     timeout: 8000,
     healthRequests: 5,
