@@ -91,7 +91,25 @@ customerCtrl.createCustomer = async (req, res) => {
     if(req.file){
       pictureUrl = await imgUpload(req.file)
     } else {
-        pictureUrl = ''
+        try {
+            const url = 'https://placekitten.com/g/200/300';
+            
+            await axios.request({
+                url:url,
+                method:'GET',
+                responseType: 'arraybuffer',
+            })
+                .then(async (response) => {
+                    const f = response.data
+                     var file = {
+                         originalname: "newImage.png",
+                         buffer: response.data
+                     }
+                     pictureUrl = await imgUpload(file)
+                });
+        } catch(err) {
+            pictureUrl = ''
+        }
     }
 
     const newAccount = new Account({ username, password, email, isCustomer });
