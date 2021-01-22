@@ -2,10 +2,10 @@ const { Router } = require('express')
 const multer = require("multer")
 const upload = multer({ dest: "" })
 
-const { getToaster, getToasters, createToaster, updateToaster, deleteToaster } = require('../controllers/toaster_controller')
 
 class ToasterRoutes {
     constructor(apiPrefix, router) {
+        const { getToaster, getToasters, createToaster, updateToaster, deleteToaster } = require('../controllers/toaster_controller')
         const apiUrl = apiPrefix + "/toasters"; 
         
         /////////////// Swagger Model Definition /////////////////

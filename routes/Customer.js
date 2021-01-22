@@ -3,11 +3,10 @@ const multer = require("multer")
 const upload = multer({ dest: "" })
 
 
-const { getCustomer, createCustomer, updateCustomer, deleteCustomer } = require('../controllers/customer_controller');
-
-class CustomerRoutes {
+class CustomerRoutes { 
     constructor(apiPrefix, router) {
-        const apiUrl = apiPrefix + "/customers"; 
+        const { getCustomer, createCustomer, updateCustomer, deleteCustomer } = require('../controllers/customer_controller');
+        const apiUrl = apiPrefix + "/customers";
         /////////////// Swagger Model Definition /////////////////
             /**
              * @typedef Customer
