@@ -19,14 +19,45 @@ class App {
         this.app.use(bodyParser.json());
         this.app.use(this.router);
 
-        // Route registration
+        // Route Registration
         const BASE_API_PATH = "/api/v1";
         this.CustomerRoute = new CustomerRoute(BASE_API_PATH, this.router);
         this.ToasterRoute = new ToasterRoute(BASE_API_PATH, this.router);
         this.AuthRoute = new AuthRoute(BASE_API_PATH, this.router);
 
+        // CircuitBreaker
         CircuitBreaker.initHystrixStream(this.app);
         CircuitBreaker.initHystrixDashboard(this.app);
+
+        // Swagger documentation
+        const expressSwagger = require('express-swagger-generator')(this.app);
+        let options = {
+            swaggerDefinition: {
+                info: {
+                    description: 'User management server',
+                    title: 'Swagger',
+                    version: '1.0.0',
+                },
+                host: 'localhost:'+this.port,
+                basePath: BASE_API_PATH,
+                produces: [
+                    "application/json",
+                    "application/xml"
+                ],
+                schemes: ['http', 'https'],
+                securityDefinitions: {
+                    JWT: {
+                        type: 'apiKey',
+                        in: 'header',
+                        name: 'Authorization',
+                        description: "",
+                    }
+                }
+            },
+            basedir: __dirname, //app absolute path
+            files: ['./routes/*.js'] //Path to the API handle folder
+        };
+        expressSwagger(options);
 
         this.app.use(App.errorHandler);
     }
