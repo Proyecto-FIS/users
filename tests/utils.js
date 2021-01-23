@@ -43,9 +43,15 @@ module.exports.createCustomerTestExpressApp = (controller, path) => {
         Validators.validEmail("email")];
     
     const onUpdateValidators = [
+        Validators.Required("userToken"),
+        Validators.validToken("userToken"),
         Validators.validEmail("email")];
     
-    const onDeleteValidators = [];
+    const onDeleteValidators = [
+        Validators.Required("userToken"),
+        Validators.validToken("userToken")
+
+    ];
 
     //Customer methods
     router.post(path, ...onCreateValidators, createCustomer.bind(controller));
@@ -54,8 +60,8 @@ module.exports.createCustomerTestExpressApp = (controller, path) => {
     router.delete(path + '/:accountId', onDeleteValidators, deleteCustomer.bind(controller));
     
     //Auth methods
-    router.post('auth/login', login.bind(controller));
-    router.get('auth/:token', getAccountByToken.bind(controller));
+    router.post('/auth/login', login.bind(controller));
+    router.get('/auth/:token', getAccountByToken.bind(controller));
     return app;
 };
 
@@ -83,13 +89,18 @@ module.exports.createToasterTestExpressApp = (controller, path) => {
     ];
 
     const onUpdateValidators = [
+        Validators.Required("userToken"),
         Validators.validEmail("email"),
         Validators.isURL("facebookUrl"),
         Validators.isURL("twitterUrl"),
-        Validators.isURL("instagramUrl")
+        Validators.isURL("instagramUrl"),
+        Validators.validToken("userToken")
     ];
 
-    const onDeleteValidators = [];
+    const onDeleteValidators = [
+        Validators.Required("userToken"),
+        Validators.validToken("userToken")
+    ];
 
     router.post(path, ...onCreateValidators, createToaster.bind(controller));
     router.get(path, getToasters.bind(controller));
@@ -97,8 +108,8 @@ module.exports.createToasterTestExpressApp = (controller, path) => {
     router.put(path + '/:accountId', ...onUpdateValidators, updateToaster.bind(controller));
     router.delete(path + '/:accountId', ...onDeleteValidators, deleteToaster.bind(controller));
     //Auth methods
-    router.post('auth/login', login.bind(controller));
-    router.get('auth/:token', getAccountByToken.bind(controller));
+    router.post('/auth/login', login.bind(controller));
+    router.get('/auth/:token', getAccountByToken.bind(controller));
 
     return app;
 };

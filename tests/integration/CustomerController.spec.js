@@ -57,7 +57,7 @@ describe("CustomerController", () => {
 
     // UPDATE
     test("Can update the customer info", async ()  => {
-        let url;
+        let url, token;
         const entry = {
             username: "customerTest",
             password: "Testpassword",
@@ -65,11 +65,6 @@ describe("CustomerController", () => {
             address: "calle con mas de 20 caracteres"
         }
 
-        const modified = {
-            email: 'nuevocustomerTest@gmail.com',
-            address: "otra calle distinta pero con 20 caracteres"
-        }
-        
         //Intentamos Guardar el nuevo customer
         await request(app)
             .post(testURL)
@@ -79,6 +74,22 @@ describe("CustomerController", () => {
                 url = testURL + '/' + response.body._id
              })
         
+        //Nos logeamos con los credenciales del nuevo customer para obtener el token
+        await request(app)
+            .post('/auth/login')
+            .send({
+                "username": entry.username,
+                "password": entry.password
+            })
+            .then(async response => {
+                token = response.body.token
+            })
+
+        const modified = {
+            email: 'nuevocustomerTest@gmail.com',
+            address: "otra calle distinta pero con 20 caracteres",
+            userToken: token
+        }
         //Actualizamos la información del customer
         await request(app)
              .put(url)

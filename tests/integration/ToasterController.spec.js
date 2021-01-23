@@ -57,9 +57,9 @@ describe("ToasterController", () => {
             })
     });
 
-        // UPDATE
+    // UPDATE
     test("Can update the toaster info", async ()  => {
-        let url;
+        let url, token;
         const entry = {
             username: "toasterTest",
             password: "Testpassword",
@@ -67,13 +67,6 @@ describe("ToasterController", () => {
             address: "calle con mas de 20 caracteres",
             name: "toasterTest",
             description: "descripción con más de 20 caracteres"
-        }
-
-        const modified = {
-            email: 'nuevotoasterTest@gmail.com',
-            address: "otra calle distinta pero con 20 caracteres",
-            name: "new name toaster Test",
-            description: "new description also > 20 characters"
         }
         
         //Intentamos Guardar el nuevo toaster
@@ -84,6 +77,25 @@ describe("ToasterController", () => {
             .then( async response => {
                 url = testURL + '/' + response.body._id
              })
+
+        //Nos logeamos con los credenciales del nuevo toaster para obtener el token
+        await request(app)
+            .post('/auth/login')
+            .send({
+                "username": entry.username,
+                "password": entry.password
+            })
+            .then(async response => {
+                token = response.body.token
+            })
+
+        const modified = {
+            email: 'nuevotoasterTest@gmail.com',
+            address: "otra calle distinta pero con 20 caracteres",
+            name: "new name toaster Test",
+            description: "new description also > 20 characters",
+            userToken: token
+        }
         
         //Actualizamos la información del toaster
         await request(app)
