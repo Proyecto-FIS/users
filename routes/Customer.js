@@ -31,11 +31,12 @@ class CustomerRoutes {
          * @returns {Error}  500 - Unexpected error creating a customer
          */
         const onCreateValidators = [
+            upload.single("picture"),
             Validators.Required("password"),
             Validators.Required("username"),
             Validators.Required("email"), 
             Validators.validEmail("email")];
-        router.post(apiUrl, ...onCreateValidators, upload.single("picture"), createCustomer);
+        router.post(apiUrl, ...onCreateValidators, createCustomer);
         
         /**
          * @route PUT /customers/{accountId}
@@ -45,10 +46,11 @@ class CustomerRoutes {
          * @returns {Error}  500 - Unexpected error
          */
         const onUpdateValidators = [
+            upload.single("picture"),
             Validators.Required("userToken"),
             Validators.validToken("userToken"),
             Validators.validEmail("email")];
-        router.put(apiUrl + '/:accountId', ...onUpdateValidators, upload.single("picture"), updateCustomer);
+        router.put(apiUrl + '/:accountId', ...onUpdateValidators, updateCustomer);
        
         /**
          * @route DELETE /customers/{accountId}

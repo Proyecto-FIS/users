@@ -44,6 +44,7 @@ class ToasterRoutes {
          * @returns {Error}  500 - Unexpected error creating a toaster
          */
         const onCreateValidators = [
+            upload.single("picture"),
             Validators.Required("password"),
             Validators.Required("username"),
             Validators.Required("email"),
@@ -54,7 +55,7 @@ class ToasterRoutes {
             Validators.isURL("twitterUrl"),
             Validators.isURL("instagramUrl")
         ];
-        router.post(apiUrl, ...onCreateValidators, upload.single("picture"), createToaster)
+        router.post(apiUrl, ...onCreateValidators, createToaster)
 
         /**
          * @route PUT /toasters/{accountId}
@@ -64,6 +65,7 @@ class ToasterRoutes {
          * @returns {Error}  404 - Unexpected error
          */
         const onUpdateValidators = [
+            upload.single("picture"),
             Validators.Required("userToken"),
             Validators.validEmail("email"),
             Validators.isURL("facebookUrl"),
@@ -71,7 +73,7 @@ class ToasterRoutes {
             Validators.isURL("instagramUrl"),
             Validators.validToken("userToken")
         ];
-        router.put(apiUrl + '/:accountId', ...onUpdateValidators, upload.single("picture"), updateToaster)
+        router.put(apiUrl + '/:accountId', ...onUpdateValidators, updateToaster)
 
         /**
          * @route DELETE /toasters/{id}
