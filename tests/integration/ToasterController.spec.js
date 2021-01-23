@@ -118,10 +118,9 @@ describe("ToasterController", () => {
         return request(app)
             .post(testURL)
             .send(missingEntry)
-            .expect(500)
+            .expect(400)
             .then(async res => {
-               await expect(res.body.errors.password.kind).toBe('required');
-               await expect(res.body.errors.username.kind).toBe('required');
+                await expect(res.body.reason).toBe('Missing fields');
             })
     });
 
@@ -179,9 +178,9 @@ describe("ToasterController", () => {
         return await request(app)
             .post(testURL)
             .send(entry)
-            .expect(500)
+            .expect(400)
             .then( async res => {
-               await expect(res.body.errors.email.message).toBe('The email format is not valid');
+                await expect(res.body.reason).toBe('The email format is not valid');
             })
     });
 
@@ -235,9 +234,9 @@ describe("ToasterController", () => {
         return await request(app)
             .post(testURL)
             .send(entry)
-            .expect(500)
+            .expect(400)
             .then( async res => {
-               await expect(res.body.errors.facebookUrl.message).toBe('Incorrect URL');
+                await expect(res.body.reason).toBe('Incorrect URL');
             })
     });
 });

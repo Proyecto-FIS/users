@@ -110,10 +110,9 @@ describe("CustomerController", () => {
         return await request(app)
             .post(testURL)
             .send(entry)
-            .expect(500)
+            .expect(400)
             .then( async res => {
-               await expect(res.body.errors.password.kind).toBe('required');
-               await expect(res.body.errors.username.kind).toBe('required');
+                await expect(res.body.reason).toBe('Missing fields');
             })
     });
 
@@ -165,9 +164,9 @@ describe("CustomerController", () => {
         return await request(app)
             .post(testURL)
             .send(entry)
-            .expect(500)
+            .expect(400)
             .then( async res => {
-               await expect(res.body.errors.email.message).toBe('The email format is not valid');
+                await expect(res.body.reason).toBe('The email format is not valid');
             })
     });
 
