@@ -1,6 +1,7 @@
 const request = require("supertest");
 const express = require("express");
 const port = process.env.PORT || 3000;
+const Validators = require("../middleware/Validators");
 
 module.exports.makeRequest = () => request(`http://localhost:${port}`);
 
@@ -25,7 +26,7 @@ module.exports.mockedRouter = () => ({
     delete: jest.fn()
 });
 
-module.exports.createCustomerTestExpressApp = (controller, path, ...middlewares) => {
+module.exports.createCustomerTestExpressApp = (controller, path) => {
     const app = express();
     const router = express.Router();
     const { getCustomer, createCustomer, updateCustomer, deleteCustomer } = require('../controllers/customer_controller');
@@ -34,20 +35,31 @@ module.exports.createCustomerTestExpressApp = (controller, path, ...middlewares)
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
     app.use(router);
+
+    const onCreateValidators = [
+        Validators.Required("password"),
+        Validators.Required("username"),
+        Validators.Required("email"), 
+        Validators.validEmail("email")];
     
+    const onUpdateValidators = [
+        Validators.validEmail("email")];
+    
+    const onDeleteValidators = [];
+
     //Customer methods
-    router.post(path, ...middlewares, createCustomer.bind(controller));
-    router.get(path + '/:accountId', ...middlewares, getCustomer.bind(controller));
-    router.put(path + '/:accountId', ...middlewares, updateCustomer.bind(controller));
-    router.delete(path + '/:accountId', ...middlewares, deleteCustomer.bind(controller));
+    router.post(path, ...onCreateValidators, createCustomer.bind(controller));
+    router.get(path + '/:accountId', getCustomer.bind(controller));
+    router.put(path + '/:accountId', onUpdateValidators, updateCustomer.bind(controller));
+    router.delete(path + '/:accountId', onDeleteValidators, deleteCustomer.bind(controller));
     
     //Auth methods
-    router.post('auth/login',...middlewares, login.bind(controller));
-    router.get('auth/:token',...middlewares, getAccountByToken.bind(controller));
+    router.post('auth/login', login.bind(controller));
+    router.get('auth/:token', getAccountByToken.bind(controller));
     return app;
 };
 
-module.exports.createToasterTestExpressApp = (controller, path, ...middlewares) => {
+module.exports.createToasterTestExpressApp = (controller, path) => {
     const app = express();
     const router = express.Router();
     const { getToaster, getToasters, createToaster, updateToaster, deleteToaster } = require('../controllers/toaster_controller')
@@ -58,14 +70,35 @@ module.exports.createToasterTestExpressApp = (controller, path, ...middlewares) 
     app.use(router);
     
     //Auth methods
-    router.post(path, ...middlewares, createToaster.bind(controller));
-    router.get(path, ...middlewares, getToasters.bind(controller));
-    router.get(path + '/:accountId', ...middlewares, getToaster.bind(controller));
-    router.put(path + '/:accountId', ...middlewares, updateToaster.bind(controller));
-    router.delete(path + '/:accountId', ...middlewares, deleteToaster.bind(controller));
+    const onCreateValidators = [
+        Validators.Required("password"),
+        Validators.Required("username"),
+        Validators.Required("email"),
+        Validators.Required("name"), 
+        Validators.Required("description"),
+        Validators.validEmail("email"),
+        Validators.isURL("facebookUrl"),
+        Validators.isURL("twitterUrl"),
+        Validators.isURL("instagramUrl")
+    ];
+
+    const onUpdateValidators = [
+        Validators.validEmail("email"),
+        Validators.isURL("facebookUrl"),
+        Validators.isURL("twitterUrl"),
+        Validators.isURL("instagramUrl")
+    ];
+
+    const onDeleteValidators = [];
+
+    router.post(path, ...onCreateValidators, createToaster.bind(controller));
+    router.get(path, getToasters.bind(controller));
+    router.get(path + '/:accountId', getToaster.bind(controller));
+    router.put(path + '/:accountId', ...onUpdateValidators, updateToaster.bind(controller));
+    router.delete(path + '/:accountId', ...onDeleteValidators, deleteToaster.bind(controller));
     //Auth methods
-    router.post('auth/login',...middlewares, login.bind(controller));
-    router.get('auth/:token',...middlewares, getAccountByToken.bind(controller));
+    router.post('auth/login', login.bind(controller));
+    router.get('auth/:token', getAccountByToken.bind(controller));
 
     return app;
 };

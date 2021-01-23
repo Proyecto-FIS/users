@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const multer = require("multer")
 const upload = multer({ dest: "" })
-
+const Validators = require("../middleware/Validators");
 
 class CustomerRoutes { 
     constructor(apiPrefix, router) {
@@ -30,7 +30,12 @@ class CustomerRoutes {
          * @returns {object} 201 - customer created
          * @returns {Error}  500 - Unexpected error creating a customer
          */
-        router.post(apiUrl, upload.single("picture"), createCustomer);
+        const onCreateValidators = [
+            Validators.Required("password"),
+            Validators.Required("username"),
+            Validators.Required("email"), 
+            Validators.validEmail("email")];
+        router.post(apiUrl, ...onCreateValidators, upload.single("picture"), createCustomer);
         
         /**
          * @route PUT /customers/{accountId}
@@ -39,7 +44,9 @@ class CustomerRoutes {
          * @returns {object} 200 - Updated customer
          * @returns {Error}  500 - Unexpected error
          */
-        router.put(apiUrl + '/:accountId', upload.single("picture"), updateCustomer);
+        const onUpdateValidators = [
+            Validators.validEmail("email")];
+        router.put(apiUrl + '/:accountId', ...onUpdateValidators, upload.single("picture"), updateCustomer);
        
         /**
          * @route DELETE /customers/{accountId}
@@ -48,7 +55,8 @@ class CustomerRoutes {
          * @returns {object} 200 - Deleted customer
          * @returns {Error}  404 - Unexpected error
          */
-        router.delete(apiUrl + '/:accountId', deleteCustomer);
+        const onDeleteValidators = [];
+        router.delete(apiUrl + '/:accountId', ...onDeleteValidators, deleteCustomer);
     }
 }
 

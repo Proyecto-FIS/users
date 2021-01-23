@@ -1,7 +1,7 @@
 const { Router } = require('express')
 const multer = require("multer")
 const upload = multer({ dest: "" })
-
+const Validators = require("../middleware/Validators");
 
 class ToasterRoutes {
     constructor(apiPrefix, router) {
@@ -43,7 +43,18 @@ class ToasterRoutes {
          * @returns {object} 201 - Toaster created
          * @returns {Error}  500 - Unexpected error creating a toaster
          */
-        router.post(apiUrl, upload.single("picture"), createToaster)
+        const onCreateValidators = [
+            Validators.Required("password"),
+            Validators.Required("username"),
+            Validators.Required("email"),
+            Validators.Required("name"), 
+            Validators.Required("description"),
+            Validators.validEmail("email"),
+            Validators.isURL("facebookUrl"),
+            Validators.isURL("twitterUrl"),
+            Validators.isURL("instagramUrl")
+        ];
+        router.post(apiUrl, ...onCreateValidators, upload.single("picture"), createToaster)
 
         /**
          * @route PUT /toasters/{accountId}
@@ -52,7 +63,13 @@ class ToasterRoutes {
          * @returns {object} 200 - Updated toaster
          * @returns {Error}  404 - Unexpected error
          */
-        router.put(apiUrl + '/:accountId', upload.single("picture"), updateToaster)
+        const onUpdateValidators = [
+            Validators.validEmail("email"),
+            Validators.isURL("facebookUrl"),
+            Validators.isURL("twitterUrl"),
+            Validators.isURL("instagramUrl")
+        ];
+        router.put(apiUrl + '/:accountId', ...onUpdateValidators, upload.single("picture"), updateToaster)
 
         /**
          * @route DELETE /toasters/{id}
@@ -61,7 +78,8 @@ class ToasterRoutes {
          * @returns {object} 200 - Deleted toaster
          * @returns {Error}  404 - Unexpected error
          */
-        router.delete(apiUrl + '/:id', deleteToaster);
+        const onDeleteValidators = [];
+        router.delete(apiUrl + '/:id',...onDeleteValidators, deleteToaster);
     }
 }
 
