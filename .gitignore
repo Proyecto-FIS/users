@@ -1,4 +1,5 @@
 node_modules/
+coverage/
 .devcontainer/
 contacts.json
 customers.json

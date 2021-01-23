@@ -1,5 +1,6 @@
 const hystrixjs = require("hystrixjs");
 const CommandFactory = hystrixjs.commandFactory;
+const dashboard = require("hystrix-dashboard");
 var hystrixSSEStream = require("hystrixjs").hystrixSSEStream;
 
 module.exports.createCircuitBreaker = (service) => {
@@ -49,3 +50,13 @@ module.exports.initHystrixStream = (router) => {
     return subscription;
   });
 };
+
+module.exports.initHystrixDashboard = (app) => {
+    console.log("[HYSTRIX] Dashboard set up");
+    app.use("/hystrix", dashboard({
+        idleTimeout: 4000,  // Will emit ping if no data comes within 4 seconds,
+        interval: 2000,     // Interval to collect metrics
+        proxy: true,        // Enable proxy for stream
+    }));
+  
+}

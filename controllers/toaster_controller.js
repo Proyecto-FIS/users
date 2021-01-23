@@ -60,7 +60,7 @@ toasterCtrl.getToasters = async (req, res) => {
         }) 
     } catch (err) {
         console.log(Date() + "-" + err)
-        res.sendStatus(500).json(err);
+        res.status(500).json(err);
     }
 }
 
@@ -145,7 +145,6 @@ toasterCtrl.createToaster = async (req, res) => {
                 }
             });
         } catch (err) {
-            // TODO: quitar esto e implementar rollback
             await Account.deleteOne( {"_id": account});
             console.log(Date() + "-" + err);
             res.status(500).json(err);
@@ -249,7 +248,7 @@ toasterCtrl.deleteToaster = async (req, res) => {
         res.status(200).json({message: 'toaster deleted'})
     } catch(err) {
         console.log(Date() + "-" + err)
-        res.sendStatus(500).json(err);
+        res.status(500).json(err);
     }
 }
 

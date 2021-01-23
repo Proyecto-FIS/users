@@ -4,7 +4,6 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = 'y';
 const cfg = require('config');
 const Customer = require('../models/customers');
 const Account = require('../models/accounts');
-const Bcrypt = require("bcryptjs");
 require('dotenv/config')
 const AWS = require('aws-sdk')
 const { v4: uuidv4 } = require('uuid')
@@ -239,7 +238,11 @@ customerCtrl.deleteCustomer = async (req, res) => {
         }
     } catch(err) {
         console.log(Date() + "-" + err)
-        res.status(500).json(err)
+        if (err.response.status === 401) {
+            res.status(401).json({ reason: "Authentication failed" });
+        } else {
+            res.status(500).json(err)
+        }
     }
 }
 
