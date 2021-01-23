@@ -64,10 +64,12 @@ class ToasterRoutes {
          * @returns {Error}  404 - Unexpected error
          */
         const onUpdateValidators = [
+            Validators.Required("userToken"),
             Validators.validEmail("email"),
             Validators.isURL("facebookUrl"),
             Validators.isURL("twitterUrl"),
-            Validators.isURL("instagramUrl")
+            Validators.isURL("instagramUrl"),
+            Validators.validToken("userToken")
         ];
         router.put(apiUrl + '/:accountId', ...onUpdateValidators, upload.single("picture"), updateToaster)
 
@@ -78,7 +80,10 @@ class ToasterRoutes {
          * @returns {object} 200 - Deleted toaster
          * @returns {Error}  404 - Unexpected error
          */
-        const onDeleteValidators = [];
+        const onDeleteValidators = [
+            Validators.Required("userToken"),
+            Validators.validToken("userToken")
+        ];
         router.delete(apiUrl + '/:id',...onDeleteValidators, deleteToaster);
     }
 }

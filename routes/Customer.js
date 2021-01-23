@@ -45,6 +45,8 @@ class CustomerRoutes {
          * @returns {Error}  500 - Unexpected error
          */
         const onUpdateValidators = [
+            Validators.Required("userToken"),
+            Validators.validToken("userToken"),
             Validators.validEmail("email")];
         router.put(apiUrl + '/:accountId', ...onUpdateValidators, upload.single("picture"), updateCustomer);
        
@@ -55,7 +57,10 @@ class CustomerRoutes {
          * @returns {object} 200 - Deleted customer
          * @returns {Error}  404 - Unexpected error
          */
-        const onDeleteValidators = [];
+        const onDeleteValidators = [
+            Validators.Required("userToken"),
+            Validators.validToken("userToken")
+        ];
         router.delete(apiUrl + '/:accountId', ...onDeleteValidators, deleteCustomer);
     }
 }

@@ -1,3 +1,6 @@
+const jwt = require('jsonwebtoken');
+const config = require('config');
+
 /**
  * @typedef ValidationError
  * @property {string} reason   - User-friendly reason message
@@ -33,6 +36,18 @@ class Validators {
                 next();
             } else {
                 res.status(400).json({ reason: "The email format is not valid" });
+            }
+        }
+    }
+
+    static validToken(fieldName) {
+        return (req, res, next) => {
+            const token = req.body[fieldName] || req.query[fieldName];
+            try {
+                jwt.verify(token, config.get("jwttoken"));
+                next();
+            } catch(err) {
+                res.status(401).json({ reason: "The provided token is not valid" });
             }
         }
     }
