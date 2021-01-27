@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Toaster = require("../../models/Toasters");
+const Toaster = require("../../models/toasters");
 const utils = require("../utils");
 const makeRequest = utils.makeRequest;
 const DatabaseConnection = require("../../db");
