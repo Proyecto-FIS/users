@@ -112,17 +112,17 @@ toasterCtrl.createToaster = async (req, res) => {
         const account = await newAccount.save();
 
         if(instagramUrl) {
-            if(!instagramUrl.startsWith("http://") || !instagramUrl.startsWith("https://")) {
+            if(!instagramUrl.startsWith("http://") && !instagramUrl.startsWith("https://")) {
                 instagramUrl = "https://" + instagramUrl
             }
         }
         if(facebookUrl) {
-            if(!facebookUrl.startsWith("http://") || !facebookUrl.startsWith("https://")) {
+            if(!facebookUrl.startsWith("http://") && !facebookUrl.startsWith("https://")) {
                 facebookUrl = "https://" + facebookUrl
             }
         }
         if(twitterUrl) {
-            if(!twitterUrl.startsWith("http://") || !twitterUrl.startsWith("https://")) {
+            if(!twitterUrl.startsWith("http://") && !twitterUrl.startsWith("https://")) {
                 twitterUrl = "https://" + twitterUrl
             }
         }
@@ -194,7 +194,7 @@ toasterCtrl.updateToaster = async (req, res) => {
         if(instagramUrl === oldInstagramUrl){
             instagramUrl = oldInstagramUrl;
         } else {
-            if(!instagramUrl.startsWith("http://") || !instagramUrl.startsWith("https://")) {
+            if(!instagramUrl.startsWith("http://") && !instagramUrl.startsWith("https://")) {
             instagramUrl = "https://" + instagramUrl
             }
         }
@@ -203,7 +203,7 @@ toasterCtrl.updateToaster = async (req, res) => {
         if(facebookUrl === oldFacebookUrl){
             facebookUrl = oldFacebookUrl;
         } else {
-            if(!facebookUrl.startsWith("http://") || !facebookUrl.startsWith("https://")) {
+            if(!facebookUrl.startsWith("http://") && !facebookUrl.startsWith("https://")) {
                 facebookUrl = "https://" + facebookUrl
             }
         }
@@ -212,7 +212,7 @@ toasterCtrl.updateToaster = async (req, res) => {
         if(twitterUrl === oldTwitterUrl){
             twitterUrl = oldTwitterUrl;
         } else {
-            if(!twitterUrl.startsWith("http://") || !twitterUrl.startsWith("https://")) {
+            if(!twitterUrl.startsWith("http://") && !twitterUrl.startsWith("https://")) {
                 twitterUrl = "https://" + twitterUrl
             }
         }
@@ -240,17 +240,19 @@ toasterCtrl.updateToaster = async (req, res) => {
     }
 }
 
-toasterCtrl.deleteToaster = async (req, res) => {
-    try {
-        const toaster = await Toaster.findOneAndDelete(req.params.id)
-        await imgDelete(toaster.pictureUrl)
-        await Account.deleteOne( {"_id": toaster.account})
-        res.status(200).json({message: 'toaster deleted'})
-    } catch(err) {
-        console.log(Date() + "-" + err)
-        res.status(500).json(err);
-    }
-}
+// Se decidió finalmente como requisito no necesitar el delete de toaster,
+// aunque hicimos su implementación
+// toasterCtrl.deleteToaster = async (req, res) => {
+//     try {
+//         const toaster = await Toaster.findOneAndDelete(req.params.id)
+//         await imgDelete(toaster.pictureUrl)
+//         await Account.deleteOne( {"_id": toaster.account})
+//         res.status(200).json({message: 'toaster deleted'})
+//     } catch(err) {
+//         console.log(Date() + "-" + err)
+//         res.status(500).json(err);
+//     }
+// }
 
 async function imgDelete(pictureUrl){
     try{

@@ -10,35 +10,38 @@ class AuthRoutes {
         /**
          * Toasters y Customers heredarían las propiedades de este tipo.
          * @typedef Account
-         * @property {string} userName.required
+         * @property {string} username.required
          * @property {string} password.required
          * @property {string} email.required
          * @property {boolean} isCustomer.required - Autogenerado
-         * @property {Date} updated - Última fecha en que se actualizó el perfil
+         * @property {Date} createdAt.required - Autogenerado - Fecha de creación
+         * @property {Date} updatedAt.required - Autogenerado - Fecha de actualización
          */
 
         /////////////// Routes /////////////////
         /**
          * @route POST /auth/login
-         * @group authentication - login/logout
-         * @returns {object} 201 - Logged user
-         * @returns {Error}  401 - Error while logging user
+         * @group authentication - login/token
+         * @returns {object} 200 - Logged user info and token
+         * @returns {Error}  400 - Error while logging user
          */
         router.post(apiUrl + '/login', login);
 
         /**
          * @route GET /auth
-         * @group authentication - login/logout
-         * @returns {object} 201 - Get account by stored token (used for frontend)
+         * @group authentication - login/token
+         * @returns {object} 200 - Get account by stored token (used for frontend)
+         * @returns {Error}  500 - Server error
          */
         router.get(apiUrl, auth, getAuth);
 
         /**
          * @route GET /auth/{token}
-         * @group authentication - login/logout
+         * @group authentication - login/token
          * @param {string} token.query.required - JWT token
          * @returns {object} 201 - Authenticated user, giving user id
          * @returns {Error}  401 - Error while checking token
+         * @returns {Error}  500 - Invalid token
          */
         router.get(apiUrl + '/:token', getAccountByToken);
     }

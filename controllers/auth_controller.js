@@ -9,8 +9,8 @@ const authCtrl = {};
 /**
  * @route POST /auth/login
  * @group authentication - login/logout
- * @returns {object} 201 - Logged user
- * @returns {Error}  401 - Error while logging user
+ * @returns {object} 200 - Logged user info and token
+ * @returns {Error}  400 - Error while logging user
  */
 authCtrl.login = async (req, res) => {
 
@@ -50,7 +50,8 @@ authCtrl.login = async (req, res) => {
 /**
  * @route GET /auth
  * @group authentication - login/logout
- * @returns {object} 201 - Get account by stored token (used for frontend)
+ * @returns {object} 200 - Get account by stored token (used for frontend)
+ * @returns {Error}  500 - Server error
  */
 
 authCtrl.getAuth = async (req, res) => {
@@ -70,6 +71,7 @@ authCtrl.getAuth = async (req, res) => {
  * @param {string} token.query.required - JWT token
  * @returns {object} 201 - Authenticated user, giving user id
  * @returns {Error}  401 - Error while checking token
+ * @returns {Error}  500 - Invalid token
  */
 authCtrl.getAccountByToken = async (req, res) => {
 

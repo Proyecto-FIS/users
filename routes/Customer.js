@@ -7,20 +7,25 @@ class CustomerRoutes {
     constructor(apiPrefix, router) {
         const { getCustomer, createCustomer, updateCustomer, deleteCustomer } = require('../controllers/customer_controller');
         const apiUrl = apiPrefix + "/customers";
+
         /////////////// Swagger Model Definition /////////////////
             /**
              * @typedef Customer
              * @property {string} pictureUrl
              * @property {string} address
+             * @property {integer} stripe_id.required - Autogenerado
+             * @property {Account.model} account.required
+             * @property {Date} createdAt.required - Autogenerado - Fecha de creación
+             * @property {Date} updatedAt.required - Autogenerado - Fecha de actualización
              */
 
         /////////////// Routes /////////////////
         /**
          * @route GET /customers/{accountId}
          * @group customers - customers operations
-         * @param {string} id.query.required - Account id required
+         * @param {string} accountId.query.required - Account id required
          * @returns {object} 200 - The customer with given account id
-         * @returns {Error}  500 - Unexpected error
+         * @returns {Error}  404 - Customer not found
          */
         router.get(apiUrl + '/:accountId', getCustomer);
 
@@ -28,6 +33,7 @@ class CustomerRoutes {
          * @route POST /customers
          * @group customers - customers operations
          * @returns {object} 201 - customer created
+         * @returns {Error} 400 - Account already exists
          * @returns {Error}  500 - Unexpected error creating a customer
          */
         const onCreateValidators = [
@@ -41,7 +47,7 @@ class CustomerRoutes {
         /**
          * @route PUT /customers/{accountId}
          * @group customers - customers operations
-         * @param {string} id.query.required - Account id required
+         * @param {string} accountId.query.required - Account id required
          * @returns {object} 200 - Updated customer
          * @returns {Error}  500 - Unexpected error
          */
@@ -55,9 +61,11 @@ class CustomerRoutes {
         /**
          * @route DELETE /customers/{accountId}
          * @group customers - customers operations
-         * @param {string} id.query.required - Account id required
+         * @param {string} accountId.query.required - Account id required
          * @returns {object} 200 - Deleted customer
-         * @returns {Error}  404 - Unexpected error
+         * @returns {Error}  401 - Authentication failed
+         * @returns {Error}  404 - Customer not found
+         * @returns {Error}  500 - Unexpected error deleting customer
          */
         const onDeleteValidators = [
             Validators.Required("userToken"),
