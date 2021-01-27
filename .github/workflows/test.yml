@@ -1,0 +1,40 @@
+name: Run tests
+
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [12.19.0]
+        mongodb-version: [4.4]
+
+    steps:
+      - uses: actions/checkout@v2
+        
+      - name: Using Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.3.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+      
+      - name: Backend testing
+        run: npm install && npm install -D && npm test
+        env:
+          PORT: 8080
+          SWAGGER_SCHEMA: http
+          MONGO_URL: mongodb://localhost:27017/test
+          TOKEN_EXPIRATION_TIME: 3600
+          REGION: ${{secrets.REGION}}
+          STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY}}
+          STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY}}
+          AWS_BUCKET_NAME: ${{secrets.AWS_BUCKET_NAME}}
+          AWS_ID: ${{secrets.AWS_ID}}
+          AWS_SECRET_NAME: ${{secrets.AWS_SECRET_NAME}}
+          SALES_MS: ${{secrets.SALES_MS}}
