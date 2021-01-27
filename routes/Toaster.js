@@ -16,7 +16,12 @@ class ToasterRoutes {
          * @property {string} address
          * @property {string} phoneNumber
          * @property {string} pictureUrl
-         * @property {Array.<String>} socialNetworks 
+         * @property {string} instagramUrl 
+         * @property {string} facebookUrl 
+         * @property {string} twitterUrl
+         * @property {Account.model} account.required
+         * @property {Date} createdAt.required - Autogenerado - Fecha de creación
+         * @property {Date} updatedAt.required - Autogenerado - Fecha de actualización 
          */
 
         /////////////// Routes /////////////////
@@ -31,9 +36,9 @@ class ToasterRoutes {
         /**
          * @route GET /toasters/{accountId}
          * @group toasters - Toasters operations
-         * @param {string} id.query.required - account Id required
+         * @param {string} accountId.query.required - account Id required
          * @returns {object} 200 - The toaster with given accountId
-         * @returns {Error}  500 - Unexpected error
+         * @returns {Error}  404 - Toaster not found
          */
         router.get(apiUrl + '/:accountId', getToaster)
 
@@ -41,6 +46,7 @@ class ToasterRoutes {
          * @route POST /toasters
          * @group toasters - Toasters operations
          * @returns {object} 201 - Toaster created
+         * @returns {Error} 400 - Account already exists
          * @returns {Error}  500 - Unexpected error creating a toaster
          */
         const onCreateValidators = [
@@ -60,9 +66,9 @@ class ToasterRoutes {
         /**
          * @route PUT /toasters/{accountId}
          * @group toasters - Toasters operations
-         * @param {string} id.query.required - account Id required
+         * @param {string} accountId.query.required - account Id required
          * @returns {object} 200 - Updated toaster
-         * @returns {Error}  404 - Unexpected error
+         * @returns {Error}  500 - Unexpected error
          */
         const onUpdateValidators = [
             upload.single("picture"),
@@ -75,18 +81,21 @@ class ToasterRoutes {
         ];
         router.put(apiUrl + '/:accountId', ...onUpdateValidators, updateToaster)
 
-        /**
-         * @route DELETE /toasters/{id}
-         * @group toasters - Toasters operations
-         * @param {string} id.query.required - toaster id required
-         * @returns {object} 200 - Deleted toaster
-         * @returns {Error}  404 - Unexpected error
-         */
-        const onDeleteValidators = [
-            Validators.Required("userToken"),
-            Validators.validToken("userToken")
-        ];
-        router.delete(apiUrl + '/:id',...onDeleteValidators, deleteToaster);
+
+        // Se decidió finalmente como requisito no necesitar el delete de toaster,
+        // aunque hicimos su implementación
+        // /**
+        //  * @route DELETE /toasters/{id}
+        //  * @group toasters - Toasters operations
+        //  * @param {string} id.query.required - toaster id required
+        //  * @returns {object} 200 - Deleted toaster
+        //  * @returns {Error}  404 - Unexpected error
+        //  */
+        // const onDeleteValidators = [
+        //     Validators.Required("userToken"),
+        //     Validators.validToken("userToken")
+        // ];
+        // router.delete(apiUrl + '/:id',...onDeleteValidators, deleteToaster);
     }
 }
 

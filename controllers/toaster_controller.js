@@ -240,17 +240,19 @@ toasterCtrl.updateToaster = async (req, res) => {
     }
 }
 
-toasterCtrl.deleteToaster = async (req, res) => {
-    try {
-        const toaster = await Toaster.findOneAndDelete(req.params.id)
-        await imgDelete(toaster.pictureUrl)
-        await Account.deleteOne( {"_id": toaster.account})
-        res.status(200).json({message: 'toaster deleted'})
-    } catch(err) {
-        console.log(Date() + "-" + err)
-        res.status(500).json(err);
-    }
-}
+// Se decidió finalmente como requisito no necesitar el delete de toaster,
+// aunque hicimos su implementación
+// toasterCtrl.deleteToaster = async (req, res) => {
+//     try {
+//         const toaster = await Toaster.findOneAndDelete(req.params.id)
+//         await imgDelete(toaster.pictureUrl)
+//         await Account.deleteOne( {"_id": toaster.account})
+//         res.status(200).json({message: 'toaster deleted'})
+//     } catch(err) {
+//         console.log(Date() + "-" + err)
+//         res.status(500).json(err);
+//     }
+// }
 
 async function imgDelete(pictureUrl){
     try{
