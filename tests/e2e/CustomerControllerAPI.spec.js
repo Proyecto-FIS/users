@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Customer = require("../../models/Customers");
+const Customer = require("../../models/customers");
 const utils = require("../utils");
 const makeRequest = utils.makeRequest;
 const DatabaseConnection = require("../../db");
