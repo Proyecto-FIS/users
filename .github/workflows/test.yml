@@ -38,3 +38,4 @@ jobs:
           AWS_ID: ${{secrets.AWS_ID}}
           AWS_SECRET_NAME: ${{secrets.AWS_SECRET_NAME}}
           SALES_MS: ${{secrets.SALES_MS}}
+          NODE_ENV: test

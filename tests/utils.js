@@ -68,7 +68,7 @@ module.exports.createCustomerTestExpressApp = (controller, path) => {
 module.exports.createToasterTestExpressApp = (controller, path) => {
     const app = express();
     const router = express.Router();
-    const { getToaster, getToasters, createToaster, updateToaster, deleteToaster } = require('../controllers/toaster_controller')
+    const { getToaster, getToasters, createToaster, updateToaster} = require('../controllers/toaster_controller')
     const { login, getAccountByToken } = require('../controllers/auth_controller');
     
     app.use(express.urlencoded({ extended: false }));
@@ -97,16 +97,10 @@ module.exports.createToasterTestExpressApp = (controller, path) => {
         Validators.validToken("userToken")
     ];
 
-    const onDeleteValidators = [
-        Validators.Required("userToken"),
-        Validators.validToken("userToken")
-    ];
-
     router.post(path, ...onCreateValidators, createToaster.bind(controller));
     router.get(path, getToasters.bind(controller));
     router.get(path + '/:accountId', getToaster.bind(controller));
     router.put(path + '/:accountId', ...onUpdateValidators, updateToaster.bind(controller));
-    router.delete(path + '/:accountId', ...onDeleteValidators, deleteToaster.bind(controller));
     //Auth methods
     router.post('/auth/login', login.bind(controller));
     router.get('/auth/:token', getAccountByToken.bind(controller));
