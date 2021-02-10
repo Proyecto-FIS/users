@@ -3,15 +3,20 @@ const Toaster = require("../../models/toasters");
 const utils = require("../utils");
 const makeRequest = utils.makeRequest;
 const DatabaseConnection = require("../../db");
+require("dotenv").config({ path: __dirname + "/../.env" });
 
 describe("ToasterController API", () => {
 
     const testURL = "/api/v1/toasters";
+    const App = require("../../server");
     const db = new DatabaseConnection();
     let entry;
 
     beforeAll(async () => {
+        jest.setTimeout(30000)
         await db.setup();
+        global.server = new App();
+        await global.server.run();
         entry = {
             username: "toasterTest",
             password: "Toasterpassword",
@@ -22,7 +27,10 @@ describe("ToasterController API", () => {
         }
     });
 
-    afterAll(() => db.close());
+    afterAll(async () => { 
+        db.close();
+        await global.server.stop();
+    })
 
     beforeEach(done => 
         mongoose.connection.dropCollection("toasters", err => {

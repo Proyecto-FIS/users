@@ -3,15 +3,20 @@ const Customer = require("../../models/customers");
 const utils = require("../utils");
 const makeRequest = utils.makeRequest;
 const DatabaseConnection = require("../../db");
+require("dotenv").config({ path: __dirname + "/../.env" });
 
 describe("CustomerController API", () => {
 
     const testURL = "/api/v1/customers";
+    const App = require("../../server");
     const db = new DatabaseConnection();
     let entry;
 
     beforeAll(async () => {
+        jest.setTimeout(30000)
         await db.setup();
+        global.server = new App();
+        await global.server.run();
         entry = {
             username: "customerTest",
             password: "Customerpassword",
@@ -21,8 +26,11 @@ describe("CustomerController API", () => {
         }
     });
 
-    afterAll(() => db.close());
-
+    afterAll(async () => { 
+        db.close();
+        await global.server.stop();
+    })
+    
     beforeEach(done => 
         mongoose.connection.dropCollection("customers", err => {
             mongoose.connection.dropCollection("accounts", error => done())
